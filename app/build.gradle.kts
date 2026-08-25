@@ -70,7 +70,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.12"
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
 
     packagingOptions {
@@ -91,7 +91,9 @@ dependencies {
     val activityVersion = "1.9.0"
     val fragmentVersion = "1.8.0"
     val lifecycleVersion = "2.8.2"
-val roomVersion = "2.6.1"
+    val roomVersion = "2.6.1"
+    val workVersion = "2.9.1"
+    val datastoreVersion = "1.1.4"
 
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
