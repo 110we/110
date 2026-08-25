@@ -81,6 +81,7 @@ graph TB
 | `RuleBuilderScreen` | Visual rule builder: field name, selector type dropdown, expression input, live preview panel |
 | `ResultsScreen` | Paginated table with column selector, search, filter chips, export button |
 | `SettingsScreen` | Global preferences grouped: Network, Crawling, Storage, Security, Advanced |
+| `PermissionStatusScreen` | Shows grant state for ADB permissions; actions: open settings, copy adb commands, test fallback |
 
 ### ViewModel Layer
 
@@ -202,6 +203,55 @@ data class CrawlResultEntity(
 | `CrawlWorker` | WorkManager worker for scheduled crawls; `setRequiredNetworkType(CONNECTED)`, `setRequiresCharging(false)` |
 | `CrawlForegroundService` | Foreground service for manual crawls; persistent notification with progress, `startForeground()` with `FOREGROUND_SERVICE_DATA_SYNC` |
 | `SyncWorker` | WorkManager worker for server sync; retries with `BackoffPolicy.EXPONENTIAL` |
+
+### Permission Strategy (Open Source / Sideload Distribution)
+
+| Feature | Primary (ADB Permission) | Fallback (Standard API) |
+|---------|--------------------------|-------------------------|
+| File export to arbitrary path | `MANAGE_EXTERNAL_STORAGE` + `FileOutputStream` | `MediaStore` + `ACTION_OPEN_DOCUMENT_TREE` (SAF) |
+| Detect installed browsers/proxy apps | `QUERY_ALL_PACKAGES` + `PackageManager.queryIntentActivities()` | `<queries>` in Manifest + explicit intent |
+| Install plugin APKs / self-update | `REQUEST_INSTALL_PACKAGES` + `INSTALL_PACKAGES` (ADB) | `ACTION_INSTALL_PACKAGE` + user confirmation |
+| App usage stats for smart scheduling | `PACKAGE_USAGE_STATS` (ADB grant) | Disabled gracefully |
+
+**Manifest declarations** (for sideload builds):
+```xml
+<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+    tools:ignore="ScopedStorage" />
+<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+    tools:ignore="QueryAllPackagesPermission" />
+<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+<uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+    tools:ignore="ProtectedPermissions" />
+```
+
+**PermissionHelper component**:
+```kotlin
+object PermissionHelper {
+    fun checkManageStorage(context: Context): Boolean =
+        Environment.isExternalStorageManager()
+
+    fun checkQueryAllPackages(context: Context): Boolean =
+        context.packageManager.hasSystemFeature(PackageManager.FEATURE_QUERY_ALL_PACKAGES)
+
+    fun openManageStorageSettings(context: Context) {
+        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+            .apply { data = Uri.parse("package:${context.packageName}") }
+        context.startActivity(intent)
+    }
+
+    fun getAdbGrantCommands(packageName: String): List<String> = listOf(
+        "adb shell pm grant $packageName android.permission.MANAGE_EXTERNAL_STORAGE",
+        "adb shell pm grant $packageName android.permission.QUERY_ALL_PACKAGES",
+        "adb shell pm grant $packageName android.permission.PACKAGE_USAGE_STATS",
+        "adb shell pm grant $packageName android.permission.REQUEST_INSTALL_PACKAGES"
+    )
+}
+```
+
+UI 在首次使用相关功能时检测权限，缺失则弹窗提供：
+- “去设置开启”按钮（跳转系统设置页）
+- “复制 ADB 命令”按钮（一键复制上述命令，适合连电脑的用户）
+- “使用标准模式”按钮（走 MediaStore/SAF 等回退方案）
 
 ## Data Models
 

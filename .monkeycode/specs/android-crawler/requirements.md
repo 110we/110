@@ -152,3 +152,15 @@ This document specifies the requirements for an Android crawler application (APK
 2. WHEN exporting data containing credentials, the system SHALL prompt for confirmation and offer to exclude sensitive fields
 3. THE system SHALL NOT log full request/response bodies containing sensitive data
 4. IF the app targets Android 14+, the system SHALL use granular media permissions for exported files
+
+### Requirement 13: Permission Management (Open Source Distribution)
+
+**User Story:** AS a user installing via GitHub Release/F-Droid/APK, I want optional enhanced permissions via ADB grant, so that file export and app detection work seamlessly without repeated system pickers.
+
+#### Acceptance Criteria
+
+1. WHEN the app is installed via sideload, the system SHALL declare `MANAGE_EXTERNAL_STORAGE`, `QUERY_ALL_PACKAGES`, `PACKAGE_USAGE_STATS` in Manifest (with `tools:ignore` for Play lint)
+2. WHEN a feature requires enhanced permission, the system SHALL check if granted; if not, show a dialog with: "Open Settings" button, "Copy ADB Commands" button, and "Use Standard Mode" fallback button
+3. WHEN user chooses "Copy ADB Commands", the system SHALL copy all relevant `adb shell pm grant` commands to clipboard with package name pre-filled
+4. WHEN enhanced permission is unavailable, the system SHALL transparently fall back to standard APIs (MediaStore/SAF, `<queries>`, etc.) without functionality loss
+5. THE system SHALL provide a "Permission Status" screen showing current grant state for each enhanced permission
