@@ -1,15 +1,32 @@
 package com.crawler
 
 import android.app.Application
+import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
+import dagger.hilt.android.internal.managers.WorkerFactory
+import javax.inject.Inject
 
 @HiltAndroidApp
-class CrawlerApplication : Application() {
+class CrawlerApplication : Application(), Configuration.Provider {
+
+    companion object {
+        @Suppress("UNUSED_PROPERTY")
+        lateinit var instance: CrawlerApplication
+            private set
+    }
+
+    @Inject
+    lateinit var workerFactory: WorkerFactory
+
     override fun onCreate() {
         super.onCreate()
-        // Initialize Timber for logging
+        instance = this
         if (BuildConfig.DEBUG) {
             timber.Timber.plant(timber.Timber.DebugTree())
         }
     }
+
+    override fun getWorkManagerConfiguration() = Configuration.Builder()
+        .setWorkerFactory(workerFactory)
+        .build()
 }

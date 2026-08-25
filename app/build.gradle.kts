@@ -1,8 +1,11 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
+    id("org.jetbrains.kotlin.plugin.serialization")
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
     id("com.google.dagger.hilt.android")
-    id("kotlinx-serialization")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -22,12 +25,14 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
-            shrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            val keystorePath = System.getenv("KEYSTORE_PATH")
+            if (keystorePath != null && keystorePath.isNotBlank()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             isMinifyEnabled = false
@@ -38,11 +43,14 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "keystore.jks")
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("KEY_ALIAS")
-            keyPassword = System.getenv("KEY_PASSWORD")
+        val keystorePath = System.getenv("KEYSTORE_PATH")
+        if (keystorePath != null && keystorePath.isNotBlank()) {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+                keyAlias = System.getenv("KEY_ALIAS") ?: ""
+                keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            }
         }
     }
 
@@ -83,22 +91,12 @@ dependencies {
     val activityVersion = "1.9.0"
     val fragmentVersion = "1.8.0"
     val lifecycleVersion = "2.8.2"
-    val roomVersion = "2.6.1"
-    val workVersion = "2.9.0"
-    val datastoreVersion = "1.1.2"
+val roomVersion = "2.6.1"
 
-    implementation("androidx.core:core-ktx:$coreKtxVersion")
-    implementation("androidx.activity:activity-compose:$activityVersion")
-    implementation("androidx.fragment:fragment-ktx:$fragmentVersion")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
-
-    // Room Database
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     implementation("androidx.room:room-paging:$roomVersion")
-    kapt("androidx.room:room-compiler:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
 
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:$workVersion")
@@ -142,14 +140,11 @@ dependencies {
     // HTML Parsing
     implementation("org.jsoup:jsoup:1.18.1")
 
-    // XPath
-    implementation("com.github.wnameless:xpath:1.1.0")
-
     // ICU4J for charset detection
     implementation("com.ibm.icu:icu4j:75.1")
 
-    // Cron4j for scheduling
-    implementation("it.sauronsoftware:cron4j:2.2.5")
+    // Cron - using cron-utils from Maven Central
+    implementation("com.cronutils:cron-utils:9.2.1")
 
     // Coroutines
     val coroutinesVersion = "1.8.0"
@@ -168,7 +163,6 @@ dependencies {
     // Security Crypto
     val securityVersion = "1.1.0-alpha06"
     implementation("androidx.security:security-crypto:$securityVersion")
-    implementation("androidx.security:security-identity-credential:$securityVersion")
 
     // Coil for image loading (if needed)
     implementation("io.coil-kt:coil-compose:2.6.0")
@@ -219,8 +213,4 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi"
         )
     }
-}
-
-tasks.named("compileDebugKotlin") {
-    kotlinOptions.freeCompilerArgs += "-Pplugin:kotlinx-serialization=explicit"
 }

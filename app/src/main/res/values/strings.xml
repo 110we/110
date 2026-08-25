@@ -169,7 +169,7 @@
     <string name="progress_errors">错误: %d</string>
     <string name="progress_elapsed">耗时: %s</string>
     <string name="stop_crawl">停止爬取</string>
-    <string name="crawl_summary">爬取完成: %d 页面, %d 条目, %d 错误</string>
+    <string name="crawl_summary" formatted="false">爬取完成: %d 页面, %d 条目, %d 错误</string>
 
     <!-- Import/Export/Backup -->
     <string name="export_tasks">导出任务配置</string>

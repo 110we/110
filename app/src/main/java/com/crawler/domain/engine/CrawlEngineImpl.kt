@@ -3,9 +3,8 @@ package com.crawler.domain.engine
 import com.crawler.domain.model.*
 import com.crawler.network.FetchStrategy
 import com.crawler.network.NetworkClient
-import com.crawler.util.RateLimiter
+import com.crawler.network.RateLimiter
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.datetime.Instant
 import timber.log.Timber
@@ -146,4 +145,5 @@ class CrawlEngineImpl(
             networkClient.getStandardStrategy()
         }
     }
+}
 }

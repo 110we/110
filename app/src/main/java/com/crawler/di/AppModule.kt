@@ -1,12 +1,17 @@
 package com.crawler.di
 
 import android.content.Context
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
+import androidx.work.WorkerFactory
 import com.crawler.data.repository.*
 import com.crawler.data.security.CredentialsManager
 import com.crawler.domain.engine.*
 import com.crawler.domain.scheduler.Scheduler
 import com.crawler.domain.scheduler.SchedulerImpl
 import com.crawler.domain.service.*
+import com.crawler.network.NetworkClient
+import com.crawler.network.NetworkClientImpl
 import com.crawler.util.PermissionHelper
 import dagger.Module
 import dagger.Provides
@@ -32,14 +37,23 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideNetworkClient(@dagger.hilt.android.qualifiers.ApplicationContext context: Context): NetworkClient {
+        return NetworkClientImpl(context)
+    }
+
+    @Provides
+    @Singleton
     fun provideExtractionEngine(): ExtractionEngine {
         return ExtractionEngineImpl()
     }
 
     @Provides
     @Singleton
-    fun provideCrawlEngine(extractionEngine: ExtractionEngine): CrawlEngine {
-        return CrawlEngineImpl(extractionEngine)
+    fun provideCrawlEngine(
+        extractionEngine: ExtractionEngine,
+        networkClient: NetworkClient
+    ): CrawlEngine {
+        return CrawlEngineImpl(extractionEngine, networkClient)
     }
 
     @Provides
@@ -58,5 +72,11 @@ object AppModule {
     @Singleton
     fun provideSyncService(): SyncService {
         return SyncServiceImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideWorkerFactory(@dagger.hilt.android.qualifiers.ApplicationContext context: Context): WorkerFactory {
+        return HiltWorkerFactory(context)
     }
 }
