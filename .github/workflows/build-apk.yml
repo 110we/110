@@ -46,7 +46,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: |
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee gradle-debug.log
+          test ${PIPESTATUS[0]} -eq 0 || exit ${PIPESTATUS[0]}
 
       - name: Build Release APK
         run: ./gradlew assembleRelease
@@ -56,6 +58,15 @@ jobs:
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Upload Build Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: gradle-debug.log
           retention-days: 7
 
       - name: Upload Release APK
