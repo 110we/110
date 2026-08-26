@@ -154,7 +154,7 @@ fun RuleBuilderScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = editingIndex.value != null ? "编辑规则" : "新建规则",
+                                text = if (editingIndex.value != null) "编辑规则" else "新建规则",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = CrawlerTheme.colorScheme.primary

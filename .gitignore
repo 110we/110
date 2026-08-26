@@ -10,3 +10,15 @@ Thumbs.db
 *.tmp
 *.log
 node_modules/
+
+# Android / Gradle
+.gradle/
+build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.keystore
+!gradle-wrapper.jar

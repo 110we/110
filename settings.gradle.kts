@@ -10,16 +10,13 @@ pluginManagement {
                 useModule("com.android.tools.build:gradle:8.5.0")
             }
             if (requested.id.id == "org.jetbrains.kotlin.android") {
-                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
+                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
             }
             if (requested.id.id == "org.jetbrains.kotlin.plugin.serialization") {
-                useModule("org.jetbrains.kotlin:kotlin-serialization:2.0.0")
+                useModule("org.jetbrains.kotlin:kotlin-serialization:1.9.24")
             }
             if (requested.id.id == "org.jetbrains.kotlin.kapt") {
-                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
-            }
-            if (requested.id.id == "com.google.devtools.ksp") {
-                useModule("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.0.0-1.0.13")
+                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
             }
         }
     }

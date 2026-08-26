@@ -523,7 +523,7 @@ fun TaskEditorScreen(
                                     modifier = Modifier.weight(1f),
                                     visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation()
                                 )
-                            )
+                            }
                             Row(
                                 modifier = Modifier.fillMaxWidth()
                             ) {

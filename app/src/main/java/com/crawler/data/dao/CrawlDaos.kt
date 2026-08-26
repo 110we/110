@@ -1,6 +1,7 @@
 package com.crawler.data.dao
 
 import androidx.room.*
+import com.crawler.data.entity.AppSettingsEntity
 import com.crawler.data.entity.CrawlResultEntity
 import com.crawler.data.entity.CrawlTaskEntity
 import com.crawler.data.entity.ResultStatus
@@ -83,8 +84,8 @@ interface ResultDao {
     @Query("SELECT SUM(LENGTH(extractedData)) FROM crawl_results")
     suspend fun getTotalDataSize(): Long
 
-    @RawQuery
-    fun getPagedResults(query: androidx.room.RawQuery): PagingSource<Int, CrawlResultEntity>
+    @RawQuery(observedEntities = [CrawlResultEntity::class])
+    fun getPagedResults(query: androidx.sqlite.db.SupportSQLiteQuery): PagingSource<Int, CrawlResultEntity>
 }
 
 @Dao
@@ -99,16 +100,3 @@ interface SettingsDao {
     @Update
     suspend fun update(settings: AppSettingsEntity): Int
 }
-
-@Entity(tableName = "app_settings")
-data class AppSettingsEntity(
-    @PrimaryKey val id: Int = 1,
-    val defaultUserAgent: String = "CrawlerApp/1.0",
-    val defaultTimeoutSeconds: Int = 30,
-    val defaultMaxRedirects: Int = 10,
-    val defaultConcurrency: Int = 5,
-    val globalRateLimitPerSecond: Double = 10.0,
-    val robotsTxtCompliance: Boolean = true,
-    val jsRenderingDefaultEnabled: Boolean = false,
-    val jsRenderingDefaultTimeout: Int = 30
-)

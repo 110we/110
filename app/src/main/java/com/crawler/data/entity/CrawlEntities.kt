@@ -16,12 +16,12 @@ data class CrawlTaskEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val name: String,
     val baseUrls: List<String>,
-    @Embedded val urlPatterns: UrlPatternsEntity,
+    @Embedded(prefix = "urlPatterns_") val urlPatterns: UrlPatternsEntity,
     val extractionRules: List<ExtractionRuleEntity>,
-    @Embedded val requestConfig: RequestConfigEntity,
-    @Embedded val scheduleConfig: ScheduleConfigEntity?,
-    @Embedded val jsRenderingConfig: JsRenderingConfigEntity?,
-    @Embedded val syncConfig: SyncConfigEntity?,
+    @Embedded(prefix = "requestConfig_") val requestConfig: RequestConfigEntity,
+    @Embedded(prefix = "scheduleConfig_") val scheduleConfig: ScheduleConfigEntity?,
+    @Embedded(prefix = "jsRenderingConfig_") val jsRenderingConfig: JsRenderingConfigEntity?,
+    @Embedded(prefix = "syncConfig_") val syncConfig: SyncConfigEntity?,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )
@@ -130,7 +130,7 @@ data class SyncConfigEntity(
     val enabled: Boolean = false,
     val endpoint: String = "",
     val authType: AuthType = AuthType.BEARER,
-    val credentials: EncryptedCredentialsEntity = EncryptedCredentialsEntity("", ""),
+    @Embedded(prefix = "credentials_") val credentials: EncryptedCredentialsEntity = EncryptedCredentialsEntity("", ""),
     val payloadFormat: PayloadFormat = PayloadFormat.JSON,
     val syncOnComplete: Boolean = true
 )
@@ -148,8 +148,9 @@ data class EncryptedCredentialsEntity(
     val password: String
 )
 
-@Embedded
+@Entity(tableName = "app_settings")
 data class AppSettingsEntity(
+    @PrimaryKey val id: Int = 1,
     val defaultUserAgent: String = "CrawlerApp/1.0",
     val defaultTimeoutSeconds: Int = 30,
     val defaultMaxRedirects: Int = 10,
