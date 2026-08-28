@@ -2,8 +2,8 @@ package com.crawler
 
 import android.app.Application
 import androidx.work.Configuration
+import androidx.work.WorkerFactory
 import dagger.hilt.android.HiltAndroidApp
-import dagger.hilt.android.internal.managers.WorkerFactory
 import javax.inject.Inject
 
 @HiltAndroidApp

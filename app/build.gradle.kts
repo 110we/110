@@ -102,6 +102,7 @@ dependencies {
 
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:$workVersion")
+    implementation("androidx.lifecycle:lifecycle-service:$lifecycleVersion")
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:$datastoreVersion")
