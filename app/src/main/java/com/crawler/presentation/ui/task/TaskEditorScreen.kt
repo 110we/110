@@ -45,16 +45,17 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.crawler.domain.model.BodyType
 import com.crawler.domain.model.CrawlTask
+import com.crawler.domain.model.EncryptedCredentials
 import com.crawler.domain.model.HttpMethod
 import com.crawler.domain.model.JsRenderingConfig
 import com.crawler.domain.model.RequestConfig
 import com.crawler.domain.model.ScheduleConfig
 import com.crawler.domain.model.ScheduleType
 import com.crawler.domain.model.SyncConfig
+import com.crawler.domain.model.UrlPatterns
 import com.crawler.presentation.viewmodel.TaskViewModel
 import com.crawler.R
 import androidx.compose.material.icons.Icons
@@ -65,6 +66,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.ui.text.input.ImeAction
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,8 +158,8 @@ fun TaskEditorScreen(
                 syncEnabled = task.syncConfig?.enabled == true
                 syncEndpoint = task.syncConfig?.endpoint ?: ""
                 syncAuthType = task.syncConfig?.authType ?: com.crawler.domain.model.AuthType.BEARER
-                syncUsername = task.syncConfig?.credentials.username ?: ""
-                syncPassword = task.syncConfig?.credentials.password ?: ""
+                syncUsername = task.syncConfig?.credentials?.username ?: ""
+                syncPassword = task.syncConfig?.credentials?.password ?: ""
                 syncOnComplete = task.syncConfig?.syncOnComplete ?: true
             }
         } else {
@@ -166,6 +169,86 @@ fun TaskEditorScreen(
                 maxRedirects = settings.defaultMaxRedirects
                 userAgent = settings.defaultUserAgent
             }
+        }
+    }
+
+    fun saveTask() {
+        val base = baseUrls.split("\n").map { it.trim() }.filter { it.isNotEmpty() }
+        if (name.isBlank() || base.isEmpty()) return
+
+        val urlPatterns = UrlPatterns(
+            includePatterns = includePatterns.split("\n").map { it.trim() }.filter { it.isNotEmpty() },
+            excludePatterns = excludePatterns.split("\n").map { it.trim() }.filter { it.isNotEmpty() },
+            maxDepth = maxDepth,
+            maxPages = maxPages
+        )
+        val requestConfig = RequestConfig(
+            method = httpMethod,
+            headers = parseJsonMap(headers),
+            cookies = parseJsonMap(cookies),
+            body = body.ifBlank { null },
+            bodyType = bodyType,
+            timeoutSeconds = timeoutSeconds,
+            followRedirects = followRedirects,
+            maxRedirects = maxRedirects,
+            userAgent = userAgent.ifBlank { null }
+        )
+        val scheduleConfig = if (scheduleEnabled) ScheduleConfig(
+            type = scheduleType,
+            cronExpression = cronExpression.ifBlank { null },
+            timeOfDay = runCatching {
+                kotlinx.datetime.LocalTime.parse(if (timeOfDay.length == 5) "$timeOfDay:00" else timeOfDay)
+            }.getOrNull(),
+            dayOfWeek = if (scheduleType == ScheduleType.WEEKLY) kotlinx.datetime.DayOfWeek.values()[dayOfWeek.coerceIn(0, 6)] else null,
+            dayOfMonth = if (scheduleType == ScheduleType.MONTHLY) dayOfMonth else null,
+            enabled = true
+        ) else null
+        val jsRenderingConfig = if (jsEnabled) JsRenderingConfig(
+            enabled = true,
+            waitCondition = waitCondition,
+            waitSelector = waitSelector.ifBlank { null },
+            waitScript = waitScript.ifBlank { null },
+            timeoutSeconds = jsTimeout
+        ) else null
+        val syncConfig = if (syncEnabled) SyncConfig(
+            enabled = true,
+            endpoint = syncEndpoint,
+            authType = syncAuthType,
+            credentials = EncryptedCredentials(syncUsername, syncPassword),
+            syncOnComplete = syncOnComplete
+        ) else null
+
+        val existing = taskViewModel.tasks.value.firstOrNull { it.id == taskId }
+        val newTask = if (existing != null) {
+            existing.copy(
+                name = name,
+                baseUrls = base,
+                urlPatterns = urlPatterns,
+                requestConfig = requestConfig,
+                scheduleConfig = scheduleConfig,
+                jsRenderingConfig = jsRenderingConfig,
+                syncConfig = syncConfig
+            )
+        } else {
+            CrawlTask(
+                id = java.util.UUID.randomUUID().toString(),
+                name = name,
+                baseUrls = base,
+                urlPatterns = urlPatterns,
+                extractionRules = emptyList(),
+                requestConfig = requestConfig,
+                scheduleConfig = scheduleConfig,
+                jsRenderingConfig = jsRenderingConfig,
+                syncConfig = syncConfig
+            )
+        }
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+            if (existing != null) {
+                taskViewModel.updateTask(newTask)
+            } else {
+                taskViewModel.createTask(newTask)
+            }
+            onSave(newTask.id)
         }
     }
 
@@ -602,4 +685,10 @@ fun DropdownMenuButton(
             }
         }
     }
+}
+
+private fun parseJsonMap(json: String): Map<String, String> {
+    return runCatching {
+        kotlinx.serialization.json.Json.decodeFromString<Map<String, String>>(json)
+    }.getOrDefault(emptyMap())
 }

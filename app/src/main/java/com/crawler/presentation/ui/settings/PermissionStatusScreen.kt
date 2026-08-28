@@ -22,9 +22,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material.Chip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,17 +51,28 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.crawler.presentation.viewmodel.PermissionViewModel
 import com.crawler.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.NetworkCheck
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
 import kotlinx.coroutines.launch
 
@@ -150,7 +162,7 @@ fun PermissionStatusScreen(
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(PermissionItem.allPermissions) { perm ->
+                    items(PermissionItems.allPermissions) { perm ->
                         PermissionCard(
                             permission = perm,
                             status = permissionsState[perm.name] ?: false,
@@ -197,10 +209,10 @@ data class PermissionItem(
     val description: String,
     val adbCommand: String,
     val isAdbOnly: Boolean,
-    val icon: androidx.compose.material.icons.filled.Icon
+    val icon: ImageVector
 )
 
-object PermissionItem {
+object PermissionItems {
     val allPermissions = listOf(
         PermissionItem(
             name = Manifest.permission.MANAGE_EXTERNAL_STORAGE,
@@ -343,21 +355,23 @@ fun PermissionCard(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
-                        Chip(
-                            onClick = { /* noop */ },
-                            colors = androidx.compose.material3.ChipDefaults.chipColors(
+                        FilterChip(
+                            selected = isGranted,
+                            onClick = { },
+                            label = {
+                                Text(
+                                    text = if (isGranted) "已授权" else "未授权",
+                                    fontSize = 12.sp
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
                                 containerColor = if (isGranted)
                                     MaterialTheme.colorScheme.primaryContainer
                                 else
-                                    MaterialTheme.colorScheme.errorContainer
+                                    MaterialTheme.colorScheme.errorContainer,
+                                labelColor = if (isGranted) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
                             )
-                        ) {
-                            Text(
-                                text = if (isGranted) "已授权" else "未授权",
-                                fontSize = 12.sp,
-                                color = if (isGranted) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
-                            )
-                        }
+                        )
                     }
                     Text(
                         text = permission.description,
@@ -369,11 +383,11 @@ fun PermissionCard(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(Icons.Default.Warning, contentDescription = "", tint = MaterialTheme.colorScheme.warning, size = 14.sp)
+                            Icon(Icons.Default.Warning, contentDescription = "", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(14.dp))
                             Text(
                                 text = "需要 ADB 授权",
                                 fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.warning,
+                                color = MaterialTheme.colorScheme.tertiary,
                                 fontWeight = FontWeight.Bold
                             )
                         }

@@ -6,6 +6,7 @@ import com.crawler.network.NetworkClient
 import com.crawler.network.RateLimiter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.datetime.Instant
 import timber.log.Timber
 

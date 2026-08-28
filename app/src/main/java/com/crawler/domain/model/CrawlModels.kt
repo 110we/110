@@ -1,6 +1,7 @@
 package com.crawler.domain.model
 
 import android.os.Parcelable
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.DayOfWeek
@@ -19,8 +20,8 @@ data class CrawlTask(
     val scheduleConfig: ScheduleConfig?,
     val jsRenderingConfig: JsRenderingConfig?,
     val syncConfig: SyncConfig?,
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now()
+    val createdAt: Instant = Clock.System.now(),
+    val updatedAt: Instant = Clock.System.now()
 )
 
 data class UrlPatterns(

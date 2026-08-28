@@ -1,6 +1,7 @@
 package com.crawler.presentation.ui.task
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,7 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material.Chip
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,6 +36,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,6 +65,7 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TableView
 import androidx.compose.material.icons.filled.ViewColumn
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.ui.text.input.ImeAction
 import kotlinx.coroutines.launch
 
@@ -77,28 +81,40 @@ fun ResultsScreen(
     val taskViewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.crawler.presentation.viewmodel.TaskViewModel>()
 
     var searchQuery by remember { mutableStateOf("") }
-    var selectedColumns by remember { mutableStateOf<Set<String>>(setOf()) }
+    val selectedColumns = remember { mutableStateOf<Set<String>>(setOf()) }
     var showExportDialog by remember { mutableStateOf(false) }
     var exportFormat by remember { mutableStateOf(ExportFormat.JSON) }
     var showColumnSelector by remember { mutableStateOf(false) }
 
     val task = taskViewModel.tasks.value.firstOrNull { it.id == taskId }
-    val results = resultsViewModel.results.collectAsState().value
-    val isLoading = resultsViewModel.isLoading.collectAsState().value
-    val error = resultsViewModel.error.collectAsState().value
+    var detailResult by remember { mutableStateOf<CrawlResult?>(null) }
+
+    fun showDetailDialog(result: CrawlResult) {
+        detailResult = result
+    }
+
+    val results by resultsViewModel.results.collectAsState()
+    val isLoading by resultsViewModel.isLoading.collectAsState()
+    val error by resultsViewModel.error.collectAsState()
+
+    // 加载结果
+    androidx.compose.runtime.LaunchedEffect(taskId) {
+        resultsViewModel.setTaskId(taskId)
+        resultsViewModel.loadResults()
+    }
 
     // 初始化列选择
     androidx.compose.runtime.LaunchedEffect(results) {
-        if (results.isNotEmpty() && selectedColumns.isEmpty()) {
+        if (results.isNotEmpty() && selectedColumns.value.isEmpty()) {
             val firstResult = results.first()
-            val columns = firstResult.extractedData.keys.toSet()
-            selectedColumns = columns
+            val columns = firstResult.data.keys.toSet()
+            selectedColumns.value = columns
         }
     }
 
     // 可用的列（从所有结果收集）
     val allColumns = remember(results) {
-        results.flatMap { it.extractedData.keys }.toSet().toList().sorted()
+        results.flatMap { it.data.keys }.toSet().toList().sorted()
     }
 
     Scaffold(
@@ -159,13 +175,16 @@ fun ResultsScreen(
                                 Icon(Icons.Default.Close, contentDescription = "清除")
                             }
                         }
-                        Chip(
+                        FilterChip(
+                            selected = false,
                             onClick = { /* 高级筛选 */ },
-                            modifier = Modifier
-                        ) {
-                            Icon(Icons.Default.FilterList, contentDescription = "筛选")
-                            Text("筛选")
-                        }
+                            label = {
+                                Row {
+                                    Icon(Icons.Default.FilterList, contentDescription = "筛选")
+                                    Text("筛选")
+                                }
+                            }
+                        )
                     }
                 }
 
@@ -214,13 +233,13 @@ fun ResultsScreen(
                     val filteredResults = remember(searchQuery, results) {
                         if (searchQuery.isBlank()) results
                         else results.filter { result ->
-                            result.extractedData.values.any { it.toString().contains(searchQuery, ignoreCase = true) }
+                            result.data.values.any { it.toString().contains(searchQuery, ignoreCase = true) }
                                 || result.url.contains(searchQuery, ignoreCase = true)
                         }
                     }
 
                     val displayColumns = remember(selectedColumns, allColumns) {
-                        if (selectedColumns.isEmpty()) allColumns else allColumns.filter { it in selectedColumns }
+                        if (selectedColumns.value.isEmpty()) allColumns else allColumns.filter { it in selectedColumns.value }
                     }
 
                     Column(
@@ -307,16 +326,11 @@ fun ResultsScreen(
     }
 
     // 详情弹窗
-    var detailResult by remember { mutableStateOf<CrawlResult?>(null) }
     if (detailResult != null) {
         DetailDialog(
             result = detailResult!!,
             onDismiss = { detailResult = null }
         )
-    }
-
-    fun showDetailDialog(result: CrawlResult) {
-        detailResult = result
     }
 }
 
@@ -342,7 +356,7 @@ fun ResultRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             columns.forEach { col ->
-                val value = result.extractedData[col]?.toString() ?: ""
+                val value = result.data[col]?.toString() ?: ""
                 Text(
                     text = if (value.length > 50) "${value.substring(0, 50)}..." else value,
                     fontSize = 12.sp,
@@ -459,7 +473,7 @@ fun ExportDialog(
                         ) {
                             Column {
                                 Text(format.name, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                                Text(format.description, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("导出为 ${format.name} 格式", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Button(onClick = { onExport(format) }) {
                                 Text("导出")
@@ -518,7 +532,7 @@ fun DetailDialog(
 
                 Text("URL: ${result.url}", fontSize = 14.sp)
                 Text("状态: ${result.status.name}", fontSize = 14.sp)
-                Text("时间: ${result.timestamp}", fontSize = 14.sp)
+                Text("时间: ${result.crawledAt}", fontSize = 14.sp)
                 if (result.errorMessage != null) {
                     Text("错误: ${result.errorMessage}", fontSize = 14.sp, color = MaterialTheme.colorScheme.error)
                 }
@@ -532,7 +546,7 @@ fun DetailDialog(
                         .weight(1f, true),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(result.extractedData.entries.sortedBy { it.key }) { entry ->
+                    items(result.data.entries.sortedBy { it.key }) { entry ->
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = androidx.compose.material3.CardDefaults.cardColors(

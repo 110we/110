@@ -4,11 +4,18 @@ import android.content.Context
 import androidx.work.*
 import com.crawler.background.CrawlWorker
 import com.crawler.domain.model.*
-import kotlinx.coroutines.tasks.await
+import com.cronutils.model.CronType
+import com.cronutils.model.definition.CronDefinitionBuilder
+import com.cronutils.parser.CronParser
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import it.sauronsoftware.cron4j.SchedulingPattern
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.plus
+import kotlinx.datetime.with
+import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,7 +40,7 @@ class SchedulerImpl @Inject constructor(
 
         val workId = workRequest.id.toString()
         try {
-            workManager.enqueueUniqueWork(workId, ExistingWorkPolicy.REPLACE, workRequest).await()
+            workManager.enqueueUniqueWork(workId, ExistingWorkPolicy.REPLACE, workRequest)
             val nextRun = calculateNextRun(scheduleConfig)
             return Result.success(ScheduleInfo(nextRun, workId))
         } catch (e: Exception) {
@@ -51,11 +58,7 @@ class SchedulerImpl @Inject constructor(
     }
 
     override suspend fun getNextRun(taskId: String): Instant? {
-        val info = workManager.getWorkInfoByIdLiveData(taskId).await()
-        return info?.runAttempt?.let { _ ->
-            // Simplified - would need to track actual next run time
-            Instant.now().plusSeconds(3600)
-        }
+        return null
     }
 
     private fun buildOneTimeWork(task: CrawlTask, config: ScheduleConfig): OneTimeWorkRequest {
@@ -99,10 +102,10 @@ class SchedulerImpl @Inject constructor(
     }
 
     private fun calculateInitialDelay(config: ScheduleConfig): Long {
-        val now = Instant.now()
+        val now = Clock.System.now()
         val target = when {
             config.timeOfDay != null -> {
-                val today = LocalDateTime.now(TimeZone.currentSystemDefault())
+                val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                 val targetToday = today.with(config.timeOfDay!!)
                 if (targetToday > today) targetToday.toInstant(TimeZone.currentSystemDefault())
                 else targetToday.plusDays(1).toInstant(TimeZone.currentSystemDefault())
@@ -110,34 +113,40 @@ class SchedulerImpl @Inject constructor(
             config.cronExpression != null -> {
                 // Parse cron and find next execution
                 try {
-                    val pattern = SchedulingPattern(config.cronExpression!!)
-                    val next = pattern.next(java.util.Date())
-                    Instant.fromEpochMilliseconds(next.time)
+                    val cron = CronParser(
+                        CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ)
+                    ).parse(config.cronExpression!!)
+                    val next = cron.nextExecutionAfter(ZonedDateTime.now()).orElse(null)
+                    if (next != null) Instant.fromEpochMilliseconds(next.toInstant().toEpochMilli())
+                    else now.plus(60, DateTimeUnit.SECOND)
                 } catch (e: Exception) {
-                    now.plusSeconds(60)
+                    now.plus(60, DateTimeUnit.SECOND)
                 }
             }
-            else -> now.plusSeconds(60)
+            else -> now.plus(60, DateTimeUnit.SECOND)
         }
         return (target.toEpochMilliseconds() - now.toEpochMilliseconds()).coerceAtLeast(0)
     }
 
     private fun calculateNextRun(config: ScheduleConfig): Instant? {
         return try {
-            val now = Instant.now()
+            val now = Clock.System.now()
             when {
                 config.timeOfDay != null -> {
-                    val today = LocalDateTime.now(TimeZone.currentSystemDefault())
+                    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                     val targetToday = today.with(config.timeOfDay!!)
                     if (targetToday > today) targetToday.toInstant(TimeZone.currentSystemDefault())
                     else targetToday.plusDays(1).toInstant(TimeZone.currentSystemDefault())
                 }
                 config.cronExpression != null -> {
-                    val pattern = SchedulingPattern(config.cronExpression!!)
-                    val next = pattern.next(java.util.Date())
-                    Instant.fromEpochMilliseconds(next.time)
+                    val cron = CronParser(
+                        CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ)
+                    ).parse(config.cronExpression!!)
+                    val next = cron.nextExecutionAfter(ZonedDateTime.now()).orElse(null)
+                    if (next != null) Instant.fromEpochMilliseconds(next.toInstant().toEpochMilli())
+                    else now.plus(3600, DateTimeUnit.SECOND)
                 }
-                else -> now.plusSeconds(3600)
+                else -> now.plus(3600, DateTimeUnit.SECOND)
             }
         } catch (e: Exception) {
             null

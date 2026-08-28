@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,10 +20,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material.Chip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +35,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,21 +49,21 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.crawler.domain.model.ExtractionRule
-import com.crawler.domain.model.ExtractionStrategy
+import com.crawler.domain.model.MultipleStrategy
 import com.crawler.domain.model.PostProcessor
-import com.crawler.domain.model.PostProcessorType
 import com.crawler.domain.model.SelectorType
 import com.crawler.presentation.viewmodel.TaskViewModel
 import com.crawler.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
@@ -91,10 +93,10 @@ fun RuleBuilderScreen(
     var selectorType by remember { mutableStateOf(SelectorType.CSS) }
     var selector by remember { mutableStateOf("") }
     var attribute by remember { mutableStateOf("text") }
-    var strategy by remember { mutableStateOf(ExtractionStrategy.FIRST) }
+    var strategy by remember { mutableStateOf(MultipleStrategy.FIRST) }
     var joinSeparator by remember { mutableStateOf(", ") }
-    var postProcessors by remember { mutableStateListOf<PostProcessor>() }
-    var editingIndex = remember { mutableStateOf<Int?>(null) }
+    val postProcessors = remember { mutableStateListOf<PostProcessor>() }
+    val editingIndex = remember { mutableStateOf<Int?>(null) }
 
     // 预览状态
     var previewHtml by remember { mutableStateOf("") }
@@ -102,6 +104,103 @@ fun RuleBuilderScreen(
     var isPreviewing by remember { mutableStateOf(false) }
 
     val error by taskViewModel.error.collectAsState()
+
+    fun saveRule() {
+        if (ruleName.isBlank() || selector.isBlank()) return
+
+        val newRule = ExtractionRule(
+            fieldName = ruleName,
+            selectorType = selectorType,
+            expression = selector,
+            attribute = attribute,
+            multiple = strategy,
+            joinDelimiter = if (strategy == MultipleStrategy.JOIN) joinSeparator else ", ",
+            postProcessors = postProcessors.toList()
+        )
+
+        if (editingIndex.value != null) {
+            rules[editingIndex.value!!] = newRule
+            editingIndex.value = null
+        } else {
+            rules.add(newRule)
+        }
+        cancelEdit()
+    }
+
+    fun cancelEdit() {
+        ruleName = ""
+        selector = ""
+        attribute = "text"
+        strategy = MultipleStrategy.FIRST
+        joinSeparator = ", "
+        postProcessors.clear()
+        editingIndex.value = null
+    }
+
+    fun startEdit(index: Int) {
+        val rule = rules[index]
+        ruleName = rule.fieldName
+        selectorType = rule.selectorType
+        selector = rule.expression
+        attribute = rule.attribute ?: "text"
+        strategy = rule.multiple
+        joinSeparator = rule.joinDelimiter
+        postProcessors.clear()
+        postProcessors.addAll(rule.postProcessors)
+        editingIndex.value = index
+    }
+
+    fun saveRules() {
+        task?.let { t ->
+            val updatedTask = t.copy(extractionRules = rules.toList())
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                taskViewModel.updateTask(updatedTask)
+                onBack()
+            }
+        }
+    }
+
+    fun previewRule(rule: ExtractionRule) {
+        if (previewHtml.isBlank()) return
+        isPreviewing = true
+        // 这里应该调用 ExtractionEngine 进行预览
+        // 简化版：直接在后台线程运行
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            val engine = com.crawler.domain.engine.ExtractionEngineImpl()
+            val result = engine.extract(previewHtml, listOf(rule))
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                val value = result[rule.fieldName]
+                previewResult = when (rule.multiple) {
+                    MultipleStrategy.FIRST ->
+                        (value as? List<*>)?.firstOrNull()?.toString() ?: value?.toString() ?: "无匹配"
+                    MultipleStrategy.ALL_ARRAY ->
+                        (value as? List<*>)?.joinToString(", ") ?: value?.toString() ?: "[]"
+                    MultipleStrategy.JOIN ->
+                        (value as? List<*>)?.joinToString(rule.joinDelimiter) ?: value?.toString() ?: ""
+                }
+                isPreviewing = false
+            }
+        }
+    }
+
+    fun runPreview() {
+        if (rules.isEmpty() || previewHtml.isBlank()) return
+        isPreviewing = true
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            val engine = com.crawler.domain.engine.ExtractionEngineImpl()
+            val result = engine.extract(previewHtml, rules.toList())
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                previewResult = result.map { "${it.key}: ${it.value}" }.joinToString("\n")
+                isPreviewing = false
+            }
+        }
+    }
+
+    fun copyToClipboard(text: String) {
+        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("预览结果", text)
+        clipboard.primaryClip = clip
+    }
 
     Scaffold(
         topBar = {
@@ -204,11 +303,11 @@ fun RuleBuilderScreen(
                             ) {
                                 DropdownMenuButton(
                                     text = strategy.name,
-                                    items = ExtractionStrategy.values().map { it.name },
-                                    onSelect = { strategy = ExtractionStrategy.valueOf(it) },
+                                    items = MultipleStrategy.values().map { it.name },
+                                    onSelect = { strategy = MultipleStrategy.valueOf(it) },
                                     modifier = Modifier.weight(1f)
                                 )
-                                if (strategy == ExtractionStrategy.JOIN) {
+                                if (strategy == MultipleStrategy.JOIN) {
                                     OutlinedTextField(
                                         value = joinSeparator,
                                         onValueChange = { joinSeparator = it },
@@ -284,6 +383,7 @@ fun RuleBuilderScreen(
                                     items(rules) { rule ->
                                         RuleListItem(
                                             rule = rule,
+                                            index = rules.indexOf(rule),
                                             onEdit = { idx ->
                                                 startEdit(idx)
                                             },
@@ -397,105 +497,14 @@ fun RuleBuilderScreen(
             }
         }
     }
-
-    fun saveRule() {
-        if (ruleName.isBlank() || selector.isBlank()) return
-
-        val newRule = ExtractionRule(
-            name = ruleName,
-            selectorType = selectorType,
-            selector = selector,
-            attribute = attribute,
-            strategy = strategy,
-            joinSeparator = if (strategy == ExtractionStrategy.JOIN) joinSeparator else null,
-            postProcessors = postProcessors.toList()
-        )
-
-        if (editingIndex.value != null) {
-            rules[editingIndex.value!!] = newRule
-            editingIndex.value = null
-        } else {
-            rules.add(newRule)
-        }
-        cancelEdit()
-    }
-
-    fun cancelEdit() {
-        ruleName = ""
-        selector = ""
-        attribute = "text"
-        strategy = ExtractionStrategy.FIRST
-        joinSeparator = ", "
-        postProcessors.clear()
-        editingIndex.value = null
-    }
-
-    fun startEdit(index: Int) {
-        val rule = rules[index]
-        ruleName = rule.name
-        selectorType = rule.selectorType
-        selector = rule.selector
-        attribute = rule.attribute
-        strategy = rule.strategy
-        joinSeparator = rule.joinSeparator ?: ", "
-        postProcessors.clear()
-        postProcessors.addAll(rule.postProcessors)
-        editingIndex.value = index
-    }
-
-    fun saveRules() {
-        task?.let { t ->
-            val updatedTask = t.copy(extractionRules = rules.toList())
-            taskViewModel.updateTask(updatedTask)
-            onBack()
-        }
-    }
-
-    fun previewRule(rule: ExtractionRule) {
-        if (previewHtml.isBlank()) return
-        isPreviewing = true
-        // 这里应该调用 ExtractionEngine 进行预览
-        // 简化版：直接在 UI 线程运行
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            val engine = com.crawler.domain.engine.ExtractionEngineImpl()
-            val result = engine.extract(previewHtml, listOf(rule))
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                previewResult = when (rule.strategy) {
-                    ExtractionStrategy.FIRST -> result[rule.name]?.firstOrNull() ?: "无匹配"
-                    ExtractionStrategy.ALL_ARRAY -> result[rule.name]?.joinToString(", ") ?: "[]"
-                    ExtractionStrategy.JOIN -> result[rule.name]?.joinToString(rule.joinSeparator ?: ", ") ?: ""
-                }
-                isPreviewing = false
-            }
-        }
-    }
-
-    fun runPreview() {
-        if (rules.isEmpty() || previewHtml.isBlank()) return
-        isPreviewing = true
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            val engine = com.crawler.domain.engine.ExtractionEngineImpl()
-            val result = engine.extract(previewHtml, rules.toList())
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                previewResult = result.map { "${it.key}: ${it.value.joinToString(", ")}" }.joinToString("\n")
-                isPreviewing = false
-            }
-        }
-    }
-
-    fun copyToClipboard(text: String) {
-        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        val clip = android.content.ClipData.newPlainText("预览结果", text)
-        clipboard.primaryClip = clip
-    }
 }
 
 @Composable
 fun PostProcessorSection(postProcessors: MutableList<PostProcessor>) {
-    var ppType by remember { mutableStateOf(PostProcessorType.TRIM) }
+    var ppKind by remember { mutableStateOf("TRIM") }
     var ppPattern by remember { mutableStateOf("") }
     var ppReplacement by remember { mutableStateOf("") }
-    var ppTargetType by remember { mutableStateOf("STRING") }
+    var ppTargetType by remember { mutableStateOf(PostProcessor.DataType.STRING) }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -507,40 +516,38 @@ fun PostProcessorSection(postProcessors: MutableList<PostProcessor>) {
         ) {
             Text("后处理器:", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             DropdownMenuButton(
-                text = ppType.name,
-                items = PostProcessorType.values().map { it.name },
-                onSelect = { ppType = PostProcessorType.valueOf(it) },
+                text = ppKind,
+                items = listOf("TRIM", "REGEX_REPLACE", "TYPE_CONVERSION"),
+                onSelect = { ppKind = it },
                 modifier = Modifier.weight(1f)
             )
         }
 
-        when (ppType) {
-            PostProcessorType.REGEX_REPLACE -> {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = ppPattern,
-                        onValueChange = { ppPattern = it },
-                        label = { Text("正则模式") },
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = ppReplacement,
-                        onValueChange = { ppReplacement = it },
-                        label = { Text("替换为") },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-            PostProcessorType.TYPE_CONVERSION -> {
-                DropdownMenuButton(
-                    text = ppTargetType,
-                    items = listOf("STRING", "INTEGER", "LONG", "DOUBLE", "BOOLEAN"),
-                    onSelect = { ppTargetType = it }
+        if (ppKind == "REGEX_REPLACE") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = ppPattern,
+                    onValueChange = { ppPattern = it },
+                    label = { Text("正则模式") },
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = ppReplacement,
+                    onValueChange = { ppReplacement = it },
+                    label = { Text("替换为") },
+                    modifier = Modifier.weight(1f)
                 )
             }
+        }
+        if (ppKind == "TYPE_CONVERSION") {
+            DropdownMenuButton(
+                text = ppTargetType.name,
+                items = PostProcessor.DataType.values().map { it.name },
+                onSelect = { ppTargetType = PostProcessor.DataType.valueOf(it) }
+            )
         }
 
         Row(
@@ -548,10 +555,10 @@ fun PostProcessorSection(postProcessors: MutableList<PostProcessor>) {
             horizontalArrangement = Arrangement.End
         ) {
             Button(onClick = {
-                val newPp = when (ppType) {
-                    PostProcessorType.TRIM -> PostProcessor(PostProcessorType.TRIM)
-                    PostProcessorType.REGEX_REPLACE -> PostProcessor(PostProcessorType.REGEX_REPLACE, ppPattern, ppReplacement)
-                    PostProcessorType.TYPE_CONVERSION -> PostProcessor(PostProcessorType.TYPE_CONVERSION, targetType = ppTargetType)
+                val newPp = when (ppKind) {
+                    "REGEX_REPLACE" -> PostProcessor.RegexReplace(ppPattern, ppReplacement)
+                    "TYPE_CONVERSION" -> PostProcessor.TypeConversion(ppTargetType)
+                    else -> PostProcessor.Trim()
                 }
                 postProcessors.add(newPp)
                 ppPattern = ""
@@ -564,17 +571,17 @@ fun PostProcessorSection(postProcessors: MutableList<PostProcessor>) {
 
         if (postProcessors.isNotEmpty()) {
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
-            Text("已添加:", fontSize = 12.sp, color = androidx.compose.ui.graphics.Color.Gray)
+            Text("已添加:", fontSize = 12.sp, color = Color.Gray)
             postProcessors.forEachIndexed { idx, pp ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = when (pp.type) {
-                            PostProcessorType.TRIM -> "Trim"
-                            PostProcessorType.REGEX_REPLACE -> "Regex: ${pp.pattern} → ${pp.replacement}"
-                            PostProcessorType.TYPE_CONVERSION -> "To ${pp.targetType}"
+                        text = when (pp) {
+                            is PostProcessor.Trim -> "Trim"
+                            is PostProcessor.RegexReplace -> "Regex: ${pp.pattern} → ${pp.replacement}"
+                            is PostProcessor.TypeConversion -> "To ${pp.targetType.name}"
                         },
                         fontSize = 12.sp
                     )
@@ -590,6 +597,7 @@ fun PostProcessorSection(postProcessors: MutableList<PostProcessor>) {
 @Composable
 fun RuleListItem(
     rule: ExtractionRule,
+    index: Int,
     onEdit: (Int) -> Unit,
     onDelete: (Int) -> Unit,
     onPreview: (ExtractionRule) -> Unit
@@ -606,24 +614,23 @@ fun RuleListItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = rule.name,
+                    text = rule.fieldName,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Chip(
-                    onClick = { /* noop */ },
-                    modifier = Modifier
-                ) {
-                    Text(rule.selectorType.name, fontSize = 10.sp)
-                }
+                FilterChip(
+                    selected = false,
+                    onClick = { },
+                    label = { Text(rule.selectorType.name, fontSize = 10.sp) }
+                )
             }
             Text(
-                text = "${rule.selector} @${rule.attribute}",
+                text = "${rule.expression} @${rule.attribute}",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "策略: ${rule.strategy.name}${if (rule.strategy == ExtractionStrategy.JOIN) " (${rule.joinSeparator})" else ""}",
+                text = "策略: ${rule.multiple.name}${if (rule.multiple == MultipleStrategy.JOIN) " (${rule.joinDelimiter})" else ""}",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -641,10 +648,10 @@ fun RuleListItem(
                 IconButton(onClick = { onPreview(rule) }) {
                     Icon(Icons.Default.Preview, contentDescription = "预览")
                 }
-                IconButton(onClick = { onEdit(rules.indexOf(rule)) }) {
+                IconButton(onClick = { onEdit(index) }) {
                     Icon(Icons.Default.Edit, contentDescription = "编辑")
                 }
-                IconButton(onClick = { onDelete(rules.indexOf(rule)) }) {
+                IconButton(onClick = { onDelete(index) }) {
                     Icon(Icons.Default.Delete, contentDescription = "删除")
                 }
             }
@@ -670,7 +677,11 @@ fun DropdownMenuButton(
             modifier = Modifier
                 .fillMaxWidth()
         )
-        Icon(Icons.Default.ArrowDropDown, contentDescription = "展开")
+        Icon(
+            Icons.Default.ArrowDropDown,
+            contentDescription = "展开",
+            modifier = Modifier.align(Alignment.CenterEnd)
+        )
 
         DropdownMenu(
             expanded = expanded,

@@ -94,9 +94,12 @@ fun SyncConfigEntity.toDomain(): SyncConfig {
 
 fun CrawlResultEntity.toDomain(): CrawlResult {
     val data = try {
-        kotlinx.serialization.json.Json.decodeFromString(
-            kotlinx.serialization.typeOf<Map<String, Any>>(), extractedData
-        )
+        val root = kotlinx.serialization.json.Json.parseToJsonElement(extractedData)
+        if (root is kotlinx.serialization.json.JsonObject) {
+            root.mapValues { (_, value) -> value.toString() }
+        } else {
+            emptyMap<String, Any>()
+        }
     } catch (e: Exception) {
         emptyMap<String, Any>()
     }

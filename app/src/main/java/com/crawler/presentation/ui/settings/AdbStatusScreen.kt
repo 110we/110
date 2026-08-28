@@ -14,7 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material.Chip
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -272,13 +272,17 @@ fun AdbOverviewCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Chip(onClick = { /* noop */ }) {
-                    Text(
-                        text = if (ready) "已就绪" else "未就绪",
-                        fontSize = 12.sp,
-                        color = if (ready) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
+                FilterChip(
+                    selected = ready,
+                    onClick = { /* noop */ },
+                    label = {
+                        Text(
+                            text = if (ready) "已就绪" else "未就绪",
+                            fontSize = 12.sp,
+                            color = if (ready) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                )
             }
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
             when {

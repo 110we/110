@@ -51,7 +51,7 @@ class ExportServiceImpl @Inject constructor(
     }
 
     private fun createExportUri(fileName: String, mimeType: String): Uri? {
-        if (permissionHelper.checkManageStorage(context)) {
+        if (permissionHelper.checkManageStorage()) {
             // 使用 MANAGE_EXTERNAL_STORAGE 直接写入 Downloads
             return createFileInDownloads(fileName, mimeType)
         } else {
@@ -90,7 +90,7 @@ class ExportServiceImpl @Inject constructor(
         context.contentResolver.openOutputStream(uri)?.use { output ->
             val writer = java.io.OutputStreamWriter(output, "UTF-8")
             // 写入 BOM
-            writer.write('\uFEFF')
+            writer.write("\uFEFF")
             
             // 确定列
             val allFields = getAllFields(results)
@@ -142,7 +142,7 @@ class ExportServiceImpl @Inject constructor(
             val sheet = workbook.createSheet("Crawl Results")
             val headerStyle = workbook.createCellStyle()
             val font = workbook.createFont()
-            font.isBold = true
+            font.bold = true
             headerStyle.setFont(font)
 
             val allFields = getAllFields(results)

@@ -11,7 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
-import androidx.compose.material.Chip
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -128,7 +129,7 @@ fun HistoryCard(
     val statusColor = when (history.status) {
         CrawlHistoryEntity.STATUS_COMPLETED -> MaterialTheme.colorScheme.primary
         CrawlHistoryEntity.STATUS_FAILED -> MaterialTheme.colorScheme.error
-        CrawlHistoryEntity.STATUS_RUNNING -> MaterialTheme.colorScheme.warning
+        CrawlHistoryEntity.STATUS_RUNNING -> MaterialTheme.colorScheme.tertiary
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
@@ -155,23 +156,25 @@ fun HistoryCard(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Chip(
-                        onClick = { /* noop */ },
-                        colors = androidx.compose.material3.ChipDefaults.chipColors(
+                    FilterChip(
+                        selected = false,
+                        onClick = { },
+                        label = {
+                            Text(
+                                text = when (history.status) {
+                                    CrawlHistoryEntity.STATUS_COMPLETED -> "成功"
+                                    CrawlHistoryEntity.STATUS_FAILED -> "失败"
+                                    CrawlHistoryEntity.STATUS_RUNNING -> "执行中"
+                                    else -> "已停止"
+                                },
+                                fontSize = 11.sp,
+                                color = statusColor
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
                             containerColor = statusColor.copy(alpha = 0.15f)
                         )
-                    ) {
-                        Text(
-                            text = when (history.status) {
-                                CrawlHistoryEntity.STATUS_COMPLETED -> "成功"
-                                CrawlHistoryEntity.STATUS_FAILED -> "失败"
-                                CrawlHistoryEntity.STATUS_RUNNING -> "执行中"
-                                else -> "已停止"
-                            },
-                            fontSize = 11.sp,
-                            color = statusColor
-                        )
-                    }
+                    )
                 }
                 Text(
                     text = "页面: ${history.pagesCrawled} | 条目: ${history.itemsExtracted} | 错误: ${history.errors}",

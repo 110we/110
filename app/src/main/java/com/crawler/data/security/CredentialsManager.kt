@@ -72,7 +72,7 @@ class CredentialsManager @Inject constructor(
     }
 
     fun getString(key: String, defaultValue: String = ""): String {
-        return getEncryptedPrefs().getString(key, defaultValue)
+        return getEncryptedPrefs().getString(key, defaultValue) ?: defaultValue
     }
 
     fun remove(key: String) {

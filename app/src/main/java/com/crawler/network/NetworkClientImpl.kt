@@ -116,6 +116,19 @@ class NetworkClientImpl @Inject constructor(
     }
 }
 
+private suspend fun okhttp3.Call.await(): Response = kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+    enqueue(object : okhttp3.Callback {
+        override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
+            continuation.cancel(e)
+        }
+
+        override fun onResponse(call: okhttp3.Call, response: Response) {
+            continuation.resume(response)
+        }
+    })
+    continuation.invokeOnCancellation { cancel() }
+}
+
 class StandardFetchStrategy(
     private val client: OkHttpClient,
     private val getRateLimiter: (String) -> RateLimiter

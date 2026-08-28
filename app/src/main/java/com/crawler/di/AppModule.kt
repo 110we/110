@@ -70,14 +70,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideExportService(@dagger.hilt.android.qualifiers.ApplicationContext context: Context): ExportService {
-        return ExportServiceImpl(context)
+    fun provideExportService(
+        @dagger.hilt.android.qualifiers.ApplicationContext context: Context,
+        permissionHelper: PermissionHelper
+    ): ExportService {
+        return ExportServiceImpl(context, permissionHelper)
     }
 
     @Provides
     @Singleton
-    fun provideSyncService(): SyncService {
-        return SyncServiceImpl()
+    fun provideSyncService(networkClient: NetworkClient): SyncService {
+        return SyncServiceImpl(networkClient)
     }
 
     @Provides

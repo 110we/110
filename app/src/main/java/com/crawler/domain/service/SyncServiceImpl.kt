@@ -57,7 +57,7 @@ class SyncServiceImpl @Inject constructor(
                     success = true
                 } else {
                     // Exponential backoff: 2s, 4s, 8s, 16s, 32s
-                    val backoff = (2.0 * Math.pow(2.0, attempt - 1)).toLong()
+                    val backoff = (2.0 * Math.pow(2.0, (attempt - 1).toDouble())).toLong()
                     delay(backoff * 1000)
                 }
             }
@@ -105,7 +105,7 @@ class SyncServiceImpl @Inject constructor(
             "data" to result.data,
             "status" to result.status.name,
             "crawled_at" to result.crawledAt.toString(),
-            "error_message" to result.errorMessage
+            "error_message" to (result.errorMessage ?: "")
         )
     }
 

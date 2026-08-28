@@ -14,7 +14,6 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsFlow
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.lifecycleScope
 import com.crawler.presentation.ui.navigation.NavigationGraph
@@ -24,8 +23,6 @@ import com.crawler.presentation.viewmodel.PermissionViewModel
 import com.crawler.presentation.viewmodel.SettingsViewModel
 import com.crawler.presentation.viewmodel.TaskViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -43,8 +40,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             CrawlerTheme {
                 val navController = rememberNavController()
-                val currentDestination = navController.currentBackStackEntryAsFlow()
-                    .map { it?.destination?.route ?: NavigationGraph.ROOT }
 
                 // 监听爬取进度广播
                 lifecycleScope.launch {
@@ -110,7 +105,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 // 底部导航栏
-                val navBackStackEntry by navController.getBackStackEntry(NavigationGraph.ROOT)
+                val navBackStackEntry = navController.getBackStackEntry(NavigationGraph.ROOT)
                 val currentRoute = navBackStackEntry.destination.route
 
                 BottomNavigation {

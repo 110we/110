@@ -3,6 +3,7 @@ package com.crawler.data.repository
 import com.crawler.data.dao.TaskDao
 import com.crawler.data.entity.CrawlTaskEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,8 +18,7 @@ class TaskRepository @Inject constructor(
     }
 
     suspend fun update(task: CrawlTaskEntity): Int {
-        task = task.copy(updatedAt = System.currentTimeMillis())
-        return taskDao.update(task)
+        return taskDao.update(task.copy(updatedAt = System.currentTimeMillis()))
     }
 
     suspend fun delete(taskId: String, deleteResults: Boolean = false): Int {

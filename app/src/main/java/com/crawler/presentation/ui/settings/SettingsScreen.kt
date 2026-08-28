@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material.Chip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,7 +55,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,6 +106,21 @@ fun SettingsScreen(
 
     val error by settingsViewModel.error.collectAsState()
     val isSaving by settingsViewModel.isSaving.collectAsState()
+
+    fun saveSettings() {
+        val newSettings = com.crawler.data.entity.AppSettingsEntity(
+            id = 1,
+            defaultTimeoutSeconds = defaultTimeout,
+            defaultMaxRedirects = defaultMaxRedirects,
+            defaultUserAgent = defaultUserAgent,
+            defaultConcurrency = defaultConcurrency,
+            globalRateLimitPerSecond = defaultRateLimit.toDouble(),
+            robotsTxtCompliance = true,
+            jsRenderingDefaultEnabled = false,
+            jsRenderingDefaultTimeout = 30
+        )
+        settingsViewModel.saveSettings(newSettings)
+    }
 
     Scaffold(
         topBar = {
@@ -450,27 +474,12 @@ fun SettingsScreen(
             }
         }
     }
-
-    fun saveSettings() {
-        val newSettings = com.crawler.data.entity.AppSettingsEntity(
-            id = 1,
-            defaultTimeoutSeconds = defaultTimeout,
-            defaultMaxRedirects = defaultMaxRedirects,
-            defaultUserAgent = defaultUserAgent,
-            defaultConcurrency = defaultConcurrency,
-            globalRateLimitPerSecond = defaultRateLimit.toDouble(),
-            robotsTxtCompliance = true,
-            jsRenderingDefaultEnabled = false,
-            jsRenderingDefaultTimeout = 30
-        )
-        settingsViewModel.saveSettings(newSettings)
-    }
 }
 
 @Composable
 fun SettingsSection(
     title: String,
-    icon: androidx.compose.material.icons.filled.Icon,
+    icon: ImageVector,
     isDangerous: Boolean = false,
     content: @Composable () -> Unit
 ) {

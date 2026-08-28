@@ -43,6 +43,12 @@ class ResultsViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
+    private val _results = MutableStateFlow<List<CrawlResult>>(emptyList())
+    val results: StateFlow<List<CrawlResult>> = _results
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     private val _selectedFields = MutableStateFlow<Set<String>>(emptySet())
     val selectedFields: StateFlow<Set<String>> = _selectedFields
 
@@ -59,6 +65,30 @@ class ResultsViewModel @Inject constructor(
         _currentTaskId.value = taskId
         _searchQuery.value = ""
         _selectedFields.value = emptySet()
+    }
+
+    fun loadResults() {
+        val taskId = _currentTaskId.value ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val entities = resultRepository.getByTaskId(taskId, limit = 10000)
+                var list = entities.map { it.toDomain() }
+                val query = _searchQuery.value
+                if (query.isNotBlank()) {
+                    list = list.filter { result ->
+                        result.data.values.any { it.toString().contains(query, ignoreCase = true) } ||
+                            result.url.contains(query, ignoreCase = true)
+                    }
+                }
+                _results.value = list
+            } catch (e: Exception) {
+                _error.value = e.message ?: "加载结果失败"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     fun setSearchQuery(query: String) {
@@ -123,6 +153,13 @@ class ResultsViewModel @Inject constructor(
             Result.failure(e)
         } finally {
             _isExporting.value = false
+        }
+    }
+
+    fun exportResults(taskId: String, format: ExportFormat) {
+        _currentTaskId.value = taskId
+        viewModelScope.launch {
+            export(format = format, exportAll = true, scope = this)
         }
     }
 

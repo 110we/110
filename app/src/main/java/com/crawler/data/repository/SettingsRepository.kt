@@ -3,11 +3,12 @@ package com.crawler.data.repository
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.preferencesKey
-import androidx.datastore.preferences.rxpreferences3
-import androidx.datastore.rxpreferences3.RxPreferenceDataStoreBuilder
+import androidx.datastore.rxjava3.rxpreferences3
+import androidx.datastore.rxjava3.RxPreferenceDataStoreBuilder
 import com.crawler.data.entity.AppSettingsEntity
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Single
+import kotlinx.coroutines.future.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -57,7 +58,7 @@ class SettingsRepository @Inject constructor(
                     "js_rendering_default_enabled" -> prefs[jsRenderingDefaultEnabledKey] = value as Boolean
                     "js_rendering_default_timeout" -> prefs[jsRenderingDefaultTimeoutKey] = (value as Number).toLong()
                 }
-            }.await()
+            }.toFuture().await()
             true
         } catch (e: Exception) {
             false
@@ -75,7 +76,7 @@ class SettingsRepository @Inject constructor(
                 prefs[robotsTxtComplianceKey] = true
                 prefs[jsRenderingDefaultEnabledKey] = false
                 prefs[jsRenderingDefaultTimeoutKey] = 30L
-            }.await()
+            }.toFuture().await()
             true
         } catch (e: Exception) {
             false

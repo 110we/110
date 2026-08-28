@@ -110,6 +110,7 @@ dependencies {
     // DataStore
     implementation("androidx.datastore:datastore-preferences:$datastoreVersion")
     implementation("androidx.datastore:datastore-core:$datastoreVersion")
+    implementation("androidx.datastore:datastore-preferences-rxjava3:$datastoreVersion")
 
     // Compose BOM
     val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
@@ -131,6 +132,7 @@ dependencies {
     val hiltVersion = "2.48"
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("com.google.dagger:hilt-compiler:$hiltVersion")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
 

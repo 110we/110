@@ -22,20 +22,21 @@ class ExtractionEngineImpl : ExtractionEngine {
             when (rule.selectorType) {
                 SelectorType.REGEX -> {
                     val value = extractByRegex(json, rule)
-                    result[rule.fieldName] = value
+                    value?.let { result[rule.fieldName] = it }
                 }
                 SelectorType.XPATH -> {
                     // Could use JSON path library here
                     val value = extractByRegex(json, rule) // fallback
-                    result[rule.fieldName] = value
+                    value?.let { result[rule.fieldName] = it }
                 }
                 SelectorType.CSS -> {
                     // CSS not applicable for JSON
-                    result[rule.fieldName] = when (rule.multiple) {
-                        MultipleStrategy.ALL_ARRAY -> emptyList()
+                    val value = when (rule.multiple) {
+                        MultipleStrategy.ALL_ARRAY -> emptyList<Any>()
                         MultipleStrategy.JOIN -> ""
                         else -> null
                     }
+                    value?.let { result[rule.fieldName] = it }
                 }
             }
         }
@@ -56,7 +57,7 @@ class ExtractionEngineImpl : ExtractionEngine {
         val result = mutableMapOf<String, Any>()
         for (rule in rules) {
             val value = extractSingleRule(doc, rule)
-            result[rule.fieldName] = value
+            value?.let { result[rule.fieldName] = it }
         }
         return result
     }
@@ -70,7 +71,7 @@ class ExtractionEngineImpl : ExtractionEngine {
 
         if (elements.isEmpty()) {
             return when (rule.multiple) {
-                MultipleStrategy.ALL_ARRAY -> emptyList()
+                MultipleStrategy.ALL_ARRAY -> emptyList<Any>()
                 MultipleStrategy.JOIN -> ""
                 else -> null
             }
@@ -91,7 +92,7 @@ class ExtractionEngineImpl : ExtractionEngine {
         return try {
             doc.select(expression)
         } catch (e: Exception) {
-            Elements.empty()
+            Elements()
         }
     }
 
@@ -106,7 +107,7 @@ class ExtractionEngineImpl : ExtractionEngine {
             val css = xpathToCss(expression)
             doc.select(css)
         } catch (e: Exception) {
-            Elements.empty()
+            Elements()
         }
     }
 
@@ -150,7 +151,7 @@ class ExtractionEngineImpl : ExtractionEngine {
 
         if (matches.isEmpty()) {
             return when (rule.multiple) {
-                MultipleStrategy.ALL_ARRAY -> emptyList()
+                MultipleStrategy.ALL_ARRAY -> emptyList<Any>()
                 MultipleStrategy.JOIN -> ""
                 else -> null
             }
