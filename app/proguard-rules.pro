@@ -86,3 +86,8 @@
 
 # Application
 -keep class com.crawler.** { *; }
+
+# Workaround for R8 ConcurrentModificationException on POI's java.awt references
+# (getViewbox() returns java.awt.geom.Rectangle2D which is absent on Android)
+-dontoptimize
+-ignorewarnings
