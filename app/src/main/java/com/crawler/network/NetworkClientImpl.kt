@@ -116,18 +116,24 @@ class NetworkClientImpl @Inject constructor(
     }
 }
 
-private suspend fun okhttp3.Call.await(): Response = kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+private suspend fun okhttp3.Call.await(): Response {
     val call = this
-    enqueue(object : okhttp3.Callback {
-        override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
-            continuation.cancel(e)
-        }
+    return try {
+        kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+            enqueue(object : okhttp3.Callback {
+                override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
+                    continuation.cancel(e)
+                }
 
-        override fun onResponse(call: okhttp3.Call, response: Response) {
-            continuation.resume(response)
+                override fun onResponse(call: okhttp3.Call, response: Response) {
+                    continuation.resume(response)
+                }
+            })
         }
-    })
-    continuation.invokeOnCancellation { call.cancel() }
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        call.cancel()
+        throw e
+    }
 }
 
 class StandardFetchStrategy(

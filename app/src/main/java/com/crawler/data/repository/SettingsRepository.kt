@@ -9,7 +9,9 @@ import androidx.datastore.preferences.rxjava3.RxPreferenceDataStoreBuilder
 import com.crawler.data.entity.AppSettingsEntity
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Single
-import kotlinx.coroutines.future.await
+import kotlinx.coroutines.resume
+import kotlinx.coroutines.resumeWithException
+import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,6 +30,20 @@ class SettingsRepository @Inject constructor(
     private val robotsTxtComplianceKey = booleanPreferencesKey("robots_txt_compliance")
     private val jsRenderingDefaultEnabledKey = booleanPreferencesKey("js_rendering_default_enabled")
     private val jsRenderingDefaultTimeoutKey = longPreferencesKey("js_rendering_default_timeout")
+
+    private suspend fun <T> Single<T>.asAwait(): T {
+        var disposable: io.reactivex.rxjava3.disposables.Disposable? = null
+        return try {
+            suspendCancellableCoroutine { continuation ->
+                disposable = subscribe(
+                    { value -> continuation.resume(value) },
+                    { error -> continuation.resumeWithException(error) }
+                )
+            }
+        } finally {
+            disposable?.dispose()
+        }
+    }
 
     fun getSettings(): Flowable<AppSettingsEntity> {
         return dataStore.data()
@@ -63,7 +79,7 @@ class SettingsRepository @Inject constructor(
                         }
                     }
                 }
-            }.toFuture().await()
+            }.asAwait()
             true
         } catch (e: Exception) {
             false
@@ -85,7 +101,7 @@ class SettingsRepository @Inject constructor(
                         this[jsRenderingDefaultTimeoutKey] = 30L
                     }
                 }
-            }.toFuture().await()
+            }.asAwait()
             true
         } catch (e: Exception) {
             false

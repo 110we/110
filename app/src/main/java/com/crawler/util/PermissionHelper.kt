@@ -21,7 +21,8 @@ class PermissionHelper(private val context: Context) {
 
     fun checkQueryAllPackages(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_QUERY_ALL_PACKAGES)
+            // Equivalent to PackageManager.FEATURE_QUERY_ALL_PACKAGES (API 30)
+            context.packageManager.hasSystemFeature("android.software.query_all_packages")
         } else {
             true
         }

@@ -14,6 +14,7 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import java.time.ZonedDateTime
@@ -45,7 +46,7 @@ class SchedulerImpl @Inject constructor(
                 is OneTimeWorkRequest ->
                     workManager.enqueueUniqueWork(workId, ExistingWorkPolicy.REPLACE, workRequest)
                 is PeriodicWorkRequest ->
-                    workManager.enqueueUniqueWork(workId, ExistingWorkPolicy.REPLACE, workRequest)
+                    workManager.enqueueUniquePeriodicWork(workId, ExistingPeriodicWorkPolicy.REPLACE, workRequest)
                 else -> throw IllegalArgumentException("Unknown work request type")
             }
             val nextRun = calculateNextRun(scheduleConfig)
