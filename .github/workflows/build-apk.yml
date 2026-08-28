@@ -47,10 +47,20 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          ./gradlew :app:kaptGenerateStubsDebugKotlin --stacktrace 2>&1 | tee gradle-debug.log
-          test ${PIPESTATUS[0]} -eq 0 || exit ${PIPESTATUS[0]}
+          ./gradlew :app:kaptGenerateStubsDebugKotlin --info 2>&1 | tee gradle-debug.log || true
+          tar czf kapt-stubs.tar.gz -C app/build/tmp/kapt3/stubs/debug . 2>/dev/null || true
+          ls app/build/tmp/kapt3/stubs/debug 2>/dev/null | head -40 || true
           ./gradlew assembleDebug --stacktrace 2>&1 | tee -a gradle-debug.log
           test ${PIPESTATUS[0]} -eq 0 || exit ${PIPESTATUS[0]}
+
+      - name: Upload Kapt Stubs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kapt-stubs
+          path: kapt-stubs.tar.gz
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: Build Release APK
         run: ./gradlew assembleRelease
