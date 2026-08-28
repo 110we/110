@@ -1,10 +1,13 @@
 package com.crawler.data.repository
 
+import androidx.paging.LoadParams
+import androidx.paging.LoadResult
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.PagingSource
+import androidx.paging.PagingState
+import androidx.paging.Pager
 import androidx.paging.cachedIn
-import androidx.paging.flow.PagingData
-import androidx.paging.flow.pager
 import com.crawler.data.dao.ResultDao
 import com.crawler.data.entity.CrawlResultEntity
 import com.crawler.data.entity.ResultStatus

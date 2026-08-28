@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Chip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,7 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -62,6 +60,7 @@ import com.crawler.presentation.viewmodel.TaskViewModel
 import com.crawler.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Save
@@ -414,7 +413,7 @@ fun TaskEditorScreen(
                                         DropdownMenuButton(
                                             text = "周${dayOfWeek + 1}",
                                             items = (0..6).map { "周${it + 1}" },
-                                            onSelect = { dayOfWeek = it.indexOfFirst { it == "周${dayOfWeek + 1}" } }
+                                            onSelect = { dayOfWeek = it.removePrefix("周").toIntOrNull()?.minus(1) ?: 0 }
                                         )
                                     }
                                     if (scheduleType == ScheduleType.MONTHLY) {
@@ -427,6 +426,7 @@ fun TaskEditorScreen(
                                         )
                                     }
                                 }
+                                else -> {}
                             }
                         }
                     }}
@@ -471,6 +471,7 @@ fun TaskEditorScreen(
                                         maxLines = 4
                                     )
                                 }
+                                else -> {}
                             }
                             OutlinedTextField(
                                 value = jsTimeout.toString(),

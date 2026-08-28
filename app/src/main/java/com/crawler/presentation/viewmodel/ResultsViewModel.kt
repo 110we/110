@@ -8,8 +8,9 @@ import androidx.paging.PagingState
 import androidx.paging.LoadParams
 import androidx.paging.LoadResult
 import androidx.paging.cachedIn
-import androidx.paging.flow.PagingData
-import androidx.paging.flow.pager
+import androidx.paging.PagingData
+import androidx.paging.Pager
+import com.crawler.data.entity.toDomain
 import com.crawler.data.repository.ResultRepository
 import com.crawler.data.repository.TaskRepository
 import com.crawler.domain.model.CrawlResult
@@ -18,6 +19,7 @@ import com.crawler.domain.model.ExportFormat
 import com.crawler.domain.model.ExportResult
 import com.crawler.domain.model.ExportService
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -79,7 +81,7 @@ class ResultsViewModel @Inject constructor(
         _selectedFields.value = emptySet()
     }
 
-    fun getResults(scope: CoroutineScope): androidx.paging.Flow<PagingData<CrawlResult>>? {
+    fun getResults(scope: CoroutineScope): Flow<PagingData<CrawlResult>>? {
         val taskId = _currentTaskId.value ?: return null
         return Pager(pagingConfig) {
             ResultsPagingSource(resultRepository, taskId, _searchQuery)

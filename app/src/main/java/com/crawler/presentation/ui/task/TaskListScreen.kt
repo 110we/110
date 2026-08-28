@@ -1,6 +1,5 @@
 package com.crawler.presentation.ui.task
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,13 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.spacer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Chip
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -25,13 +24,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.crawler.presentation.viewmodel.TaskViewModel
 import com.crawler.R
@@ -43,10 +44,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -55,9 +54,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateDpAsState
-import androidx.compose.animation.spring
-import androidx.compose.animation.tween
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.launch
 
 @Composable
 fun TaskListScreen(
@@ -72,6 +72,7 @@ fun TaskListScreen(
     val tasks by taskViewModel.tasks.collectAsState()
     val isLoading by taskViewModel.isLoading.collectAsState()
     val error by taskViewModel.error.collectAsState()
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -89,7 +90,7 @@ fun TaskListScreen(
                     text = "暂无任务，点击右下角创建",
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    textAlign = androidx.compose.ui.text.TextAlign.Center
+                    textAlign = TextAlign.Center
                 )
             }
         } else {
@@ -105,8 +106,8 @@ fun TaskListScreen(
                         onRules = { onRuleBuilder(task.id) },
                         onResults = { onResults(task.id) },
                         onDelete = {
-                            taskViewModel.deleteTask(task.id).onSuccess {
-                                // 删除成功，列表会自动刷新
+                            scope.launch {
+                                taskViewModel.deleteTask(task.id)
                             }
                         }
                     )
@@ -117,7 +118,7 @@ fun TaskListScreen(
         // 悬浮按钮
         FloatingActionButton(
             onClick = onNewTask,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+            modifier = Modifier.align(Alignment.End).padding(16.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = "新建任务")
         }
@@ -147,7 +148,7 @@ fun TaskItemCard(
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surface),
         onClick = onClick,
-        elevation = androidx.compose.foundation.layout.CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         androidx.compose.foundation.layout.Column(
             modifier = Modifier.padding(16.dp)
@@ -165,7 +166,7 @@ fun TaskItemCard(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        overflow = androidx.compose.ui.text.TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis
                     )
                     androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -174,19 +175,21 @@ fun TaskItemCard(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
-                Chip(
+                FilterChip(
+                    selected = false,
                     onClick = { /* 状态芯片不可点击 */ },
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    colors = androidx.compose.material3.ChipDefaults.chipColors(
+                    colors = FilterChipDefaults.filterChipColors(
                         containerColor = statusColor.copy(alpha = 0.15f)
-                    )
-                ) {
-                    Text(
-                        text = if (task.scheduleConfig?.enabled == true) "定时" else "手动",
-                        fontSize = 12.sp,
-                        color = statusColor
-                    )
-                }
+                    ),
+                    label = {
+                        Text(
+                            text = if (task.scheduleConfig?.enabled == true) "定时" else "手动",
+                            fontSize = 12.sp,
+                            color = statusColor
+                        )
+                    }
+                )
             }
 
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))

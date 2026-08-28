@@ -112,7 +112,7 @@ class SchedulerImpl @Inject constructor(
                 try {
                     val pattern = SchedulingPattern(config.cronExpression!!)
                     val next = pattern.next(java.util.Date())
-                    Instant.ofEpochMillisecond(next.time)
+                    Instant.fromEpochMilliseconds(next.time)
                 } catch (e: Exception) {
                     now.plusSeconds(60)
                 }
@@ -135,7 +135,7 @@ class SchedulerImpl @Inject constructor(
                 config.cronExpression != null -> {
                     val pattern = SchedulingPattern(config.cronExpression!!)
                     val next = pattern.next(java.util.Date())
-                    Instant.ofEpochMillisecond(next.time)
+                    Instant.fromEpochMilliseconds(next.time)
                 }
                 else -> now.plusSeconds(3600)
             }

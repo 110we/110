@@ -34,13 +34,13 @@ private val LightColors = lightColorScheme(
 
 @Composable
 fun CrawlerTheme(
-    darkTheme: Boolean = androidx.compose.material3.isSystemInDarkTheme(),
+    darkTheme: Boolean = androidx.compose.foundation.isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     val colors = if (darkTheme) DarkColors else LightColors
     MaterialTheme(
         colorScheme = colors,
-        typography = androidx.compose.material3.Typography,
+        typography = androidx.compose.material3.Typography(),
         content = content
     )
 }

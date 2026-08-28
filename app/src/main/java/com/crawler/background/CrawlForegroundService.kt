@@ -48,6 +48,7 @@ class CrawlForegroundService : LifecycleService() {
     lateinit var historyRepository: HistoryRepository
 
     private var currentTaskId: String? = null
+    private var currentTaskName: String? = null
     private var currentHistoryId: String? = null
     private var crawlJob: Job? = null
     private var notificationManager: NotificationManager? = null
@@ -70,7 +71,7 @@ class CrawlForegroundService : LifecycleService() {
         // Android 14+ 需显式调用 startForeground 并指定类型
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val notification = buildInitialNotification()
-            startForeground(NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            startForeground(NOTIFICATION_ID, notification, Service.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         }
 
         return START_STICKY
@@ -115,6 +116,7 @@ class CrawlForegroundService : LifecycleService() {
                 stopSelf()
                 return@launch
             }
+            currentTaskName = task.name
 
             // 记录执行历史（开始）
             currentHistoryId = historyRepository.recordStart(
@@ -259,7 +261,7 @@ class CrawlForegroundService : LifecycleService() {
     }
 
     private fun getTaskName(taskId: String?): String {
-        return taskId?.let { taskRepository.getById(it)?.name ?: "未知" } ?: "未知"
+        return currentTaskName ?: taskId ?: "未知"
     }
 
     private fun formatElapsed(ms: Long): String {

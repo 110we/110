@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.parcelize")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
@@ -63,6 +64,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
         viewBinding = false
         dataBinding = false
     }
@@ -103,6 +105,7 @@ dependencies {
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:$workVersion")
     implementation("androidx.lifecycle:lifecycle-service:$lifecycleVersion")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:$datastoreVersion")
@@ -138,7 +141,10 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
     implementation("com.squareup.moshi:moshi-kotlin:$moshiVersion")
+    implementation("com.squareup.moshi:moshi:$moshiVersion")
     implementation("com.squareup.moshi:moshi-adapters:$moshiVersion")
+    implementation("com.squareup.moshi:moshi-kotlin:$moshiVersion")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.24")
 
     // HTML Parsing
     implementation("org.jsoup:jsoup:1.18.1")

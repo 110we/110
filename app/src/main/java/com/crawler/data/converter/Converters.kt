@@ -2,8 +2,8 @@ package com.crawler.data.converter
 
 import androidx.room.TypeConverter
 import com.crawler.data.entity.*
-import com.google.common.reflect.TypeToken
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalTime
@@ -17,11 +17,11 @@ class Converters {
         .add(KotlinJsonAdapterFactory())
         .build()
 
-    private val listStringType: Type = TypeToken.getParameterized(List::class.java, String::class.java).type
-    private val mapStringStringType: Type = TypeToken.getParameterized(Map::class.java, String::class.java, String::class.java).type
-    private val listExtractionRuleType: Type = TypeToken.getParameterized(List::class.java, ExtractionRuleEntity::class.java).type
-    private val listPostProcessorType: Type = TypeToken.getParameterized(List::class.java, PostProcessorEntity::class.java).type
-    private val setStringType: Type = TypeToken.getParameterized(Set::class.java, String::class.java).type
+    private val listStringType: Type = Types.newParameterizedType(List::class.java, String::class.java)
+    private val mapStringStringType: Type = Types.newParameterizedType(Map::class.java, String::class.java, String::class.java)
+    private val listExtractionRuleType: Type = Types.newParameterizedType(List::class.java, ExtractionRuleEntity::class.java)
+    private val listPostProcessorType: Type = Types.newParameterizedType(List::class.java, PostProcessorEntity::class.java)
+    private val setStringType: Type = Types.newParameterizedType(Set::class.java, String::class.java)
 
     @TypeConverter
     fun listStringToJson(list: List<String>?): String = list?.let { moshi.adapter(listStringType).toJson(it) } ?: "[]"
@@ -57,7 +57,7 @@ class Converters {
     fun instantToLong(instant: Instant?): Long = instant?.toEpochMilliseconds() ?: 0L
 
     @TypeConverter
-    fun longToInstant(millis: Long): Instant? = if (millis > 0) Instant.ofEpochMilliseconds(millis) else null
+    fun longToInstant(millis: Long): Instant? = if (millis > 0) Instant.fromEpochMilliseconds(millis) else null
 
     @TypeConverter
     fun localTimeToString(time: LocalTime?): String = time?.toString() ?: ""

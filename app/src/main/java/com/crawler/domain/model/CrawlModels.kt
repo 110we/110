@@ -1,9 +1,11 @@
 package com.crawler.domain.model
 
+import android.os.Parcelable
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.DayOfWeek
 import java.util.*
+import kotlinx.parcelize.Parcelize
 
 // Core domain models (matching design.md)
 
@@ -104,6 +106,7 @@ data class EncryptedCredentials(
 
 // Runtime state models
 
+@Parcelize
 data class CrawlProgress(
     val taskId: String,
     val currentUrl: String?,
@@ -112,7 +115,7 @@ data class CrawlProgress(
     val errors: Int,
     val elapsedMs: Long,
     val status: CrawlStatus
-)
+) : Parcelable
 
 enum class CrawlStatus { IDLE, RUNNING, PAUSED, COMPLETED, FAILED, STOPPED }
 

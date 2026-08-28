@@ -18,8 +18,8 @@ fun CrawlTaskEntity.toDomain(): CrawlTask {
         scheduleConfig = scheduleConfig?.toDomain(),
         jsRenderingConfig = jsRenderingConfig?.toDomain(),
         syncConfig = syncConfig?.toDomain(),
-        createdAt = kotlinx.datetime.Instant.ofEpochMillisecond(createdAt),
-        updatedAt = kotlinx.datetime.Instant.ofEpochMillisecond(updatedAt)
+        createdAt = kotlinx.datetime.Instant.fromEpochMilliseconds(createdAt),
+        updatedAt = kotlinx.datetime.Instant.fromEpochMilliseconds(updatedAt)
     )
 }
 
@@ -107,8 +107,8 @@ fun CrawlResultEntity.toDomain(): CrawlResult {
         data = data,
         status = ResultStatus.valueOf(status.name),
         errorMessage = errorMessage,
-        crawledAt = kotlinx.datetime.Instant.ofEpochMillisecond(crawledAt),
-        syncedAt = syncedAt?.let { kotlinx.datetime.Instant.ofEpochMillisecond(it) }
+        crawledAt = kotlinx.datetime.Instant.fromEpochMilliseconds(crawledAt),
+        syncedAt = syncedAt?.let { kotlinx.datetime.Instant.fromEpochMilliseconds(it) }
     )
 }
 

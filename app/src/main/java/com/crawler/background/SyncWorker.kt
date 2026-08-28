@@ -3,6 +3,7 @@ package com.crawler.background
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.crawler.data.entity.toDomain
 import com.crawler.data.repository.ResultRepository
 import com.crawler.data.repository.TaskRepository
 import com.crawler.domain.model.SyncConfig
@@ -44,18 +45,4 @@ class SyncWorker @Inject constructor(
             Result.retry()
         }
     }
-}
-
-// 扩展函数
-private fun com.crawler.data.entity.CrawlResultEntity.toDomain(): com.crawler.domain.model.CrawlResult {
-    return com.crawler.domain.model.CrawlResult(
-        id = id,
-        taskId = taskId,
-        url = url,
-        data = com.google.gson.Gson().fromJson(extractedData, Map::class.java),
-        status = com.crawler.domain.model.ResultStatus.valueOf(status.name),
-        errorMessage = errorMessage,
-        crawledAt = kotlinx.datetime.Instant.ofEpochMillisecond(crawledAt),
-        syncedAt = syncedAt?.let { kotlinx.datetime.Instant.ofEpochMillisecond(it) }
-    )
 }

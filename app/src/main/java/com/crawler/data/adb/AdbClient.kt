@@ -20,7 +20,7 @@ class AdbClient @Inject constructor(
     enum class Mode { SHIZUKU, ROOT, LOCAL }
 
     val isShizukuAvailable: Boolean
-        get() = ShizukuProvider.isBinderAlive()
+        get() = Shizuku.pingBinder()
 
     val isShizukuInstalled: Boolean
         get() = runCatching {
@@ -102,7 +102,12 @@ class AdbClient @Inject constructor(
 
     private fun executeViaShizuku(command: String): AdbCommandResult {
         return runCatching {
-            val process = Shizuku.newProcess(arrayOf("sh", "-c", command), null, null)
+            val method = Shizuku::class.java.getDeclaredMethod(
+                "newProcess",
+                Array<String>::class.java, Array<String>::class.java, String::class.java
+            )
+            method.isAccessible = true
+            val process = method.invoke(null, arrayOf("sh", "-c", command), null, null) as Process
             val stdout = process.inputStream.readBytes().toString(Charsets.UTF_8)
             val stderr = process.errorStream.readBytes().toString(Charsets.UTF_8)
             val exitCode = process.waitFor()

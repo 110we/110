@@ -88,7 +88,7 @@ class CrawlWorker @Inject constructor(
 }
 
 // TaskEntity 扩展函数
-private fun com.crawler.data.entity.CrawlTaskEntity.toDomain(): com.crawler.domain.model.CrawlTask {
+internal fun com.crawler.data.entity.CrawlTaskEntity.toDomain(): com.crawler.domain.model.CrawlTask {
     return com.crawler.domain.model.CrawlTask(
         id = id,
         name = name,
@@ -104,12 +104,12 @@ private fun com.crawler.data.entity.CrawlTaskEntity.toDomain(): com.crawler.doma
         scheduleConfig = scheduleConfig?.toDomain(),
         jsRenderingConfig = jsRenderingConfig?.toDomain(),
         syncConfig = syncConfig?.toDomain(),
-        createdAt = kotlinx.datetime.Instant.ofEpochMillisecond(createdAt),
-        updatedAt = kotlinx.datetime.Instant.ofEpochMillisecond(updatedAt)
+        createdAt = kotlinx.datetime.Instant.fromEpochMilliseconds(createdAt),
+        updatedAt = kotlinx.datetime.Instant.fromEpochMilliseconds(updatedAt)
     )
 }
 
-private fun com.crawler.data.entity.ExtractionRuleEntity.toDomain(): com.crawler.domain.model.ExtractionRule {
+internal fun com.crawler.data.entity.ExtractionRuleEntity.toDomain(): com.crawler.domain.model.ExtractionRule {
     return com.crawler.domain.model.ExtractionRule(
         fieldName = fieldName,
         selectorType = com.crawler.domain.model.SelectorType.valueOf(selectorType.name),
@@ -121,7 +121,7 @@ private fun com.crawler.data.entity.ExtractionRuleEntity.toDomain(): com.crawler
     )
 }
 
-private fun com.crawler.data.entity.PostProcessorEntity.toDomain(): com.crawler.domain.model.PostProcessor {
+internal fun com.crawler.data.entity.PostProcessorEntity.toDomain(): com.crawler.domain.model.PostProcessor {
     return when (this) {
         is com.crawler.data.entity.PostProcessorEntity.Trim -> com.crawler.domain.model.PostProcessor.Trim(enabled)
         is com.crawler.data.entity.PostProcessorEntity.RegexReplace -> com.crawler.domain.model.PostProcessor.RegexReplace(pattern, replacement)
@@ -131,7 +131,7 @@ private fun com.crawler.data.entity.PostProcessorEntity.toDomain(): com.crawler.
     }
 }
 
-private fun com.crawler.data.entity.RequestConfigEntity.toDomain(): com.crawler.domain.model.RequestConfig {
+internal fun com.crawler.data.entity.RequestConfigEntity.toDomain(): com.crawler.domain.model.RequestConfig {
     return com.crawler.domain.model.RequestConfig(
         method = com.crawler.domain.model.HttpMethod.valueOf(method.name),
         headers = headers,
@@ -145,7 +145,7 @@ private fun com.crawler.data.entity.RequestConfigEntity.toDomain(): com.crawler.
     )
 }
 
-private fun com.crawler.data.entity.ScheduleConfigEntity.toDomain(): com.crawler.domain.model.ScheduleConfig {
+internal fun com.crawler.data.entity.ScheduleConfigEntity.toDomain(): com.crawler.domain.model.ScheduleConfig {
     return com.crawler.domain.model.ScheduleConfig(
         type = com.crawler.domain.model.ScheduleType.valueOf(type.name),
         cronExpression = cronExpression,
@@ -156,7 +156,7 @@ private fun com.crawler.data.entity.ScheduleConfigEntity.toDomain(): com.crawler
     )
 }
 
-private fun com.crawler.data.entity.JsRenderingConfigEntity.toDomain(): com.crawler.domain.model.JsRenderingConfig {
+internal fun com.crawler.data.entity.JsRenderingConfigEntity.toDomain(): com.crawler.domain.model.JsRenderingConfig {
     return com.crawler.domain.model.JsRenderingConfig(
         enabled = enabled,
         waitCondition = com.crawler.domain.model.WaitCondition.valueOf(waitCondition.name),
@@ -167,7 +167,7 @@ private fun com.crawler.data.entity.JsRenderingConfigEntity.toDomain(): com.craw
     )
 }
 
-private fun com.crawler.data.entity.SyncConfigEntity.toDomain(): com.crawler.domain.model.SyncConfig {
+internal fun com.crawler.data.entity.SyncConfigEntity.toDomain(): com.crawler.domain.model.SyncConfig {
     return com.crawler.domain.model.SyncConfig(
         enabled = enabled,
         endpoint = endpoint,
