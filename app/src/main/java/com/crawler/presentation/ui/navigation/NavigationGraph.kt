@@ -23,83 +23,83 @@ object NavigationGraph {
     const val PERMISSIONS = "permissions"
     const val ADB_STATUS = "adb_status"
     const val HISTORY = "history"
+}
 
-    fun NavGraphBuilder.buildGraph(
-        navController: androidx.navigation.NavController,
-        onTaskClick: (String) -> Unit,
-        onNewTask: () -> Unit,
-        onEditTask: (String) -> Unit,
-        onRuleBuilder: (String) -> Unit,
-        onResults: (String) -> Unit,
-        onSettings: () -> Unit,
-        onPermissions: () -> Unit,
-        onAdbStatus: () -> Unit,
-        onHistory: () -> Unit
-    ) {
-        composable(ROOT) {
-            TaskListScreen(
-                onTaskClick = onTaskClick,
-                onNewTask = onNewTask,
-                onEditTask = onEditTask,
-                onRuleBuilder = onRuleBuilder,
-                onResults = onResults
-            )
-        }
-        composable(
-            route = "$TASK_EDITOR/{taskId}",
-            arguments = listOf(androidx.navigation.navArgument("taskId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
-            TaskEditorScreen(
-                taskId = if (taskId.isBlank()) null else taskId,
-                onSave = { _ ->
-                    navController.popBackStack()
-                },
-                onCancel = { navController.popBackStack() }
-            )
-        }
-        composable(
-            route = "$RULE_BUILDER/{taskId}",
-            arguments = listOf(androidx.navigation.navArgument("taskId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
-            RuleBuilderScreen(
-                taskId = taskId,
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable(
-            route = "$RESULTS/{taskId}",
-            arguments = listOf(androidx.navigation.navArgument("taskId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
-            ResultsScreen(
-                taskId = taskId,
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable(SETTINGS) {
-            SettingsScreen(
-                onBack = { navController.popBackStack() },
-                onPermissionsClick = onPermissions,
-                onAdbStatusClick = onAdbStatus,
-                onHistoryClick = onHistory
-            )
-        }
-        composable(PERMISSIONS) {
-            PermissionStatusScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable(ADB_STATUS) {
-            AdbStatusScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable(HISTORY) {
-            HistoryScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
+fun NavGraphBuilder.buildGraph(
+    navController: androidx.navigation.NavController,
+    onTaskClick: (String) -> Unit,
+    onNewTask: () -> Unit,
+    onEditTask: (String) -> Unit,
+    onRuleBuilder: (String) -> Unit,
+    onResults: (String) -> Unit,
+    onSettings: () -> Unit,
+    onPermissions: () -> Unit,
+    onAdbStatus: () -> Unit,
+    onHistory: () -> Unit
+) {
+    composable(NavigationGraph.ROOT) {
+        TaskListScreen(
+            onTaskClick = onTaskClick,
+            onNewTask = onNewTask,
+            onEditTask = onEditTask,
+            onRuleBuilder = onRuleBuilder,
+            onResults = onResults
+        )
+    }
+    composable(
+        route = "${NavigationGraph.TASK_EDITOR}/{taskId}",
+        arguments = listOf(androidx.navigation.navArgument("taskId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+        TaskEditorScreen(
+            taskId = if (taskId.isBlank()) null else taskId,
+            onSave = { _ ->
+                navController.popBackStack()
+            },
+            onCancel = { navController.popBackStack() }
+        )
+    }
+    composable(
+        route = "${NavigationGraph.RULE_BUILDER}/{taskId}",
+        arguments = listOf(androidx.navigation.navArgument("taskId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+        RuleBuilderScreen(
+            taskId = taskId,
+            onBack = { navController.popBackStack() }
+        )
+    }
+    composable(
+        route = "${NavigationGraph.RESULTS}/{taskId}",
+        arguments = listOf(androidx.navigation.navArgument("taskId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+        ResultsScreen(
+            taskId = taskId,
+            onBack = { navController.popBackStack() }
+        )
+    }
+    composable(NavigationGraph.SETTINGS) {
+        SettingsScreen(
+            onBack = { navController.popBackStack() },
+            onPermissionsClick = onPermissions,
+            onAdbStatusClick = onAdbStatus,
+            onHistoryClick = onHistory
+        )
+    }
+    composable(NavigationGraph.PERMISSIONS) {
+        PermissionStatusScreen(
+            onBack = { navController.popBackStack() }
+        )
+    }
+    composable(NavigationGraph.ADB_STATUS) {
+        AdbStatusScreen(
+            onBack = { navController.popBackStack() }
+        )
+    }
+    composable(NavigationGraph.HISTORY) {
+        HistoryScreen(
+            onBack = { navController.popBackStack() }
+        )
     }
 }

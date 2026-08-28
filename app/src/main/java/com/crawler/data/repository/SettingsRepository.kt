@@ -2,7 +2,9 @@ package com.crawler.data.repository
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.preferencesKey
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.rxjava3.RxPreferenceDataStoreBuilder
 import com.crawler.data.entity.AppSettingsEntity
 import io.reactivex.rxjava3.core.Flowable
@@ -18,17 +20,17 @@ class SettingsRepository @Inject constructor(
 
     private val dataStore = RxPreferenceDataStoreBuilder(context, "settings").build()
 
-    private val defaultUserAgentKey = preferencesKey<String>("default_user_agent")
-    private val defaultTimeoutKey = preferencesKey<Long>("default_timeout")
-    private val defaultMaxRedirectsKey = preferencesKey<Long>("default_max_redirects")
-    private val defaultConcurrencyKey = preferencesKey<Long>("default_concurrency")
-    private val globalRateLimitKey = preferencesKey<String>("global_rate_limit")
-    private val robotsTxtComplianceKey = preferencesKey<Boolean>("robots_txt_compliance")
-    private val jsRenderingDefaultEnabledKey = preferencesKey<Boolean>("js_rendering_default_enabled")
-    private val jsRenderingDefaultTimeoutKey = preferencesKey<Long>("js_rendering_default_timeout")
+    private val defaultUserAgentKey = stringPreferencesKey("default_user_agent")
+    private val defaultTimeoutKey = longPreferencesKey("default_timeout")
+    private val defaultMaxRedirectsKey = longPreferencesKey("default_max_redirects")
+    private val defaultConcurrencyKey = longPreferencesKey("default_concurrency")
+    private val globalRateLimitKey = stringPreferencesKey("global_rate_limit")
+    private val robotsTxtComplianceKey = booleanPreferencesKey("robots_txt_compliance")
+    private val jsRenderingDefaultEnabledKey = booleanPreferencesKey("js_rendering_default_enabled")
+    private val jsRenderingDefaultTimeoutKey = longPreferencesKey("js_rendering_default_timeout")
 
     fun getSettings(): Flowable<AppSettingsEntity> {
-        return dataStore.data
+        return dataStore.data()
             .map { prefs ->
                 AppSettingsEntity(
                     defaultUserAgent = prefs[defaultUserAgentKey] ?: "CrawlerApp/1.0",
@@ -46,16 +48,20 @@ class SettingsRepository @Inject constructor(
 
     suspend fun updateSetting(key: String, value: Any): Boolean {
         return try {
-            dataStore.edit { prefs ->
-                when (key) {
-                    "default_user_agent" -> prefs[defaultUserAgentKey] = value as String
-                    "default_timeout" -> prefs[defaultTimeoutKey] = (value as Number).toLong()
-                    "default_max_redirects" -> prefs[defaultMaxRedirectsKey] = (value as Number).toLong()
-                    "default_concurrency" -> prefs[defaultConcurrencyKey] = (value as Number).toLong()
-                    "global_rate_limit" -> prefs[globalRateLimitKey] = value.toString()
-                    "robots_txt_compliance" -> prefs[robotsTxtComplianceKey] = value as Boolean
-                    "js_rendering_default_enabled" -> prefs[jsRenderingDefaultEnabledKey] = value as Boolean
-                    "js_rendering_default_timeout" -> prefs[jsRenderingDefaultTimeoutKey] = (value as Number).toLong()
+            dataStore.updateDataAsync { prefs ->
+                Single.fromCallable<Preferences> {
+                    prefs.toMutablePreferences().apply {
+                        when (key) {
+                            "default_user_agent" -> this[defaultUserAgentKey] = value as String
+                            "default_timeout" -> this[defaultTimeoutKey] = (value as Number).toLong()
+                            "default_max_redirects" -> this[defaultMaxRedirectsKey] = (value as Number).toLong()
+                            "default_concurrency" -> this[defaultConcurrencyKey] = (value as Number).toLong()
+                            "global_rate_limit" -> this[globalRateLimitKey] = value.toString()
+                            "robots_txt_compliance" -> this[robotsTxtComplianceKey] = value as Boolean
+                            "js_rendering_default_enabled" -> this[jsRenderingDefaultEnabledKey] = value as Boolean
+                            "js_rendering_default_timeout" -> this[jsRenderingDefaultTimeoutKey] = (value as Number).toLong()
+                        }
+                    }
                 }
             }.toFuture().await()
             true
@@ -66,15 +72,19 @@ class SettingsRepository @Inject constructor(
 
     suspend fun resetDefaults(): Boolean {
         return try {
-            dataStore.edit { prefs ->
-                prefs[defaultUserAgentKey] = "CrawlerApp/1.0"
-                prefs[defaultTimeoutKey] = 30L
-                prefs[defaultMaxRedirectsKey] = 10L
-                prefs[defaultConcurrencyKey] = 5L
-                prefs[globalRateLimitKey] = "10.0"
-                prefs[robotsTxtComplianceKey] = true
-                prefs[jsRenderingDefaultEnabledKey] = false
-                prefs[jsRenderingDefaultTimeoutKey] = 30L
+            dataStore.updateDataAsync { prefs ->
+                Single.fromCallable<Preferences> {
+                    prefs.toMutablePreferences().apply {
+                        this[defaultUserAgentKey] = "CrawlerApp/1.0"
+                        this[defaultTimeoutKey] = 30L
+                        this[defaultMaxRedirectsKey] = 10L
+                        this[defaultConcurrencyKey] = 5L
+                        this[globalRateLimitKey] = "10.0"
+                        this[robotsTxtComplianceKey] = true
+                        this[jsRenderingDefaultEnabledKey] = false
+                        this[jsRenderingDefaultTimeoutKey] = 30L
+                    }
+                }
             }.toFuture().await()
             true
         } catch (e: Exception) {

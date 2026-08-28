@@ -9,6 +9,11 @@ import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph
@@ -17,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.lifecycleScope
 import com.crawler.presentation.ui.navigation.NavigationGraph
+import com.crawler.presentation.ui.navigation.buildGraph
 import com.crawler.presentation.ui.theme.CrawlerTheme
 import com.crawler.presentation.viewmodel.CrawlViewModel
 import com.crawler.presentation.viewmodel.PermissionViewModel
@@ -72,7 +78,7 @@ class MainActivity : ComponentActivity() {
                     .registerReceiver(completeReceiver, android.content.IntentFilter("com.crawler.CRAWL_COMPLETED"))
 
                 NavHost(navController, startDestination = NavigationGraph.ROOT) {
-                    NavigationGraph.buildGraph(
+                    buildGraph(
                         navController = navController,
                         onTaskClick = { taskId ->
                             navController.navigate(NavigationGraph.RESULTS + "/$taskId")
@@ -109,10 +115,10 @@ class MainActivity : ComponentActivity() {
                 val currentRoute = navBackStackEntry.destination.route
 
                 BottomNavigation {
-                    val items = listOf(
-                        Triple(NavigationGraph.ROOT, "任务", androidx.compose.material.icons.Icons.Filled.ListAlt),
-                        Triple(NavigationGraph.RESULTS, "结果", androidx.compose.material.icons.Icons.Filled.TableChart),
-                        Triple(NavigationGraph.SETTINGS, "设置", androidx.compose.material.icons.Icons.Filled.Settings)
+                    val items: List<Triple<String, String, ImageVector>> = listOf(
+                        Triple(NavigationGraph.ROOT, "任务", Icons.Filled.Home),
+                        Triple(NavigationGraph.RESULTS, "结果", Icons.Filled.DateRange),
+                        Triple(NavigationGraph.SETTINGS, "设置", Icons.Filled.Settings)
                     )
                     items.forEach { (route, label, icon) ->
                         val selected = currentRoute?.startsWith(route) == true

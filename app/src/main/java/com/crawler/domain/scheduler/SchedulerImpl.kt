@@ -6,15 +6,16 @@ import com.crawler.background.CrawlWorker
 import com.crawler.domain.model.*
 import com.cronutils.model.CronType
 import com.cronutils.model.definition.CronDefinitionBuilder
+import com.cronutils.model.time.ExecutionTime
 import com.cronutils.parser.CronParser
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import kotlinx.datetime.plus
-import kotlinx.datetime.with
+import kotlinx.datetime.toLocalDateTime
 import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -40,7 +41,13 @@ class SchedulerImpl @Inject constructor(
 
         val workId = workRequest.id.toString()
         try {
-            workManager.enqueueUniqueWork(workId, ExistingWorkPolicy.REPLACE, workRequest)
+            when (workRequest) {
+                is OneTimeWorkRequest ->
+                    workManager.enqueueUniqueWork(workId, ExistingWorkPolicy.REPLACE, workRequest)
+                is PeriodicWorkRequest ->
+                    workManager.enqueueUniqueWork(workId, ExistingWorkPolicy.REPLACE, workRequest)
+                else -> throw IllegalArgumentException("Unknown work request type")
+            }
             val nextRun = calculateNextRun(scheduleConfig)
             return Result.success(ScheduleInfo(nextRun, workId))
         } catch (e: Exception) {
@@ -87,7 +94,7 @@ class SchedulerImpl @Inject constructor(
         // Or use a more sophisticated cron library
         val delay = calculateInitialDelay(config)
         return OneTimeWorkRequestBuilder<CrawlWorker>()
-            .setInputData(workDataOf("task_id" to task.id, "cron" to config.cronExpression ?: ""))
+            .setInputData(workDataOf("task_id" to task.id, "cron" to (config.cronExpression ?: "")))
             .setInitialDelay(delay.toLong(), TimeUnit.MILLISECONDS)
             .setConstraints(buildConstraints())
             .build()
@@ -105,10 +112,14 @@ class SchedulerImpl @Inject constructor(
         val now = Clock.System.now()
         val target = when {
             config.timeOfDay != null -> {
-                val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-                val targetToday = today.with(config.timeOfDay!!)
-                if (targetToday > today) targetToday.toInstant(TimeZone.currentSystemDefault())
-                else targetToday.plusDays(1).toInstant(TimeZone.currentSystemDefault())
+                val today = now.toLocalDateTime(TimeZone.currentSystemDefault())
+                val targetToday = LocalDateTime(today.date, config.timeOfDay!!)
+                if (targetToday > today) {
+                    targetToday.toInstant(TimeZone.currentSystemDefault())
+                } else {
+                    LocalDateTime(today.date.plus(1, DateTimeUnit.DAY), config.timeOfDay!!)
+                        .toInstant(TimeZone.currentSystemDefault())
+                }
             }
             config.cronExpression != null -> {
                 // Parse cron and find next execution
@@ -116,14 +127,14 @@ class SchedulerImpl @Inject constructor(
                     val cron = CronParser(
                         CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ)
                     ).parse(config.cronExpression!!)
-                    val next = cron.nextExecutionAfter(ZonedDateTime.now()).orElse(null)
+                    val next = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).orElse(null)
                     if (next != null) Instant.fromEpochMilliseconds(next.toInstant().toEpochMilli())
-                    else now.plus(60, DateTimeUnit.SECOND)
+                    else now.plus(60.seconds)
                 } catch (e: Exception) {
-                    now.plus(60, DateTimeUnit.SECOND)
+                    now.plus(60.seconds)
                 }
             }
-            else -> now.plus(60, DateTimeUnit.SECOND)
+            else -> now.plus(60.seconds)
         }
         return (target.toEpochMilliseconds() - now.toEpochMilliseconds()).coerceAtLeast(0)
     }
@@ -133,20 +144,24 @@ class SchedulerImpl @Inject constructor(
             val now = Clock.System.now()
             when {
                 config.timeOfDay != null -> {
-                    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-                    val targetToday = today.with(config.timeOfDay!!)
-                    if (targetToday > today) targetToday.toInstant(TimeZone.currentSystemDefault())
-                    else targetToday.plusDays(1).toInstant(TimeZone.currentSystemDefault())
+                    val today = now.toLocalDateTime(TimeZone.currentSystemDefault())
+                    val targetToday = LocalDateTime(today.date, config.timeOfDay!!)
+                    if (targetToday > today) {
+                        targetToday.toInstant(TimeZone.currentSystemDefault())
+                    } else {
+                        LocalDateTime(today.date.plus(1, DateTimeUnit.DAY), config.timeOfDay!!)
+                            .toInstant(TimeZone.currentSystemDefault())
+                    }
                 }
                 config.cronExpression != null -> {
                     val cron = CronParser(
                         CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ)
                     ).parse(config.cronExpression!!)
-                    val next = cron.nextExecutionAfter(ZonedDateTime.now()).orElse(null)
+                    val next = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).orElse(null)
                     if (next != null) Instant.fromEpochMilliseconds(next.toInstant().toEpochMilli())
-                    else now.plus(3600, DateTimeUnit.SECOND)
+                    else now.plus(3600.seconds)
                 }
-                else -> now.plus(3600, DateTimeUnit.SECOND)
+                else -> now.plus(3600.seconds)
             }
         } catch (e: Exception) {
             null

@@ -117,6 +117,7 @@ class NetworkClientImpl @Inject constructor(
 }
 
 private suspend fun okhttp3.Call.await(): Response = kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+    val call = this
     enqueue(object : okhttp3.Callback {
         override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
             continuation.cancel(e)
@@ -126,7 +127,7 @@ private suspend fun okhttp3.Call.await(): Response = kotlinx.coroutines.suspendC
             continuation.resume(response)
         }
     })
-    continuation.invokeOnCancellation { cancel() }
+    continuation.invokeOnCancellation { call.cancel() }
 }
 
 class StandardFetchStrategy(
@@ -199,9 +200,12 @@ class JsRenderStrategy(private val context: Context) : FetchStrategy {
 
     override suspend fun fetch(url: String, requestConfig: RequestConfig): FetchResponse {
         return renderSemaphore.withPermit {
-            JsRenderWebView(context).use { webView ->
+            val webView = JsRenderWebView(context)
+            try {
                 webView.configure(config!!, requestConfig)
                 webView.loadAndWait(url)
+            } finally {
+                webView.destroy()
             }
         }
     }

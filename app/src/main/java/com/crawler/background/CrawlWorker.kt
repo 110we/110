@@ -1,6 +1,7 @@
 package com.crawler.background
 
 import android.content.Context
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -12,17 +13,19 @@ import com.crawler.domain.model.CrawlProgress
 import com.crawler.domain.model.CrawlStatus
 import com.crawler.domain.repository.AdbRepository
 import com.crawler.domain.repository.HistoryRepository
-import javax.inject.Inject
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 
-class CrawlWorker @Inject constructor(
-    context: Context,
-    params: WorkerParameters,
+@HiltWorker
+class CrawlWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
     private val taskRepository: TaskRepository,
     private val resultRepository: ResultRepository,
     private val crawlEngine: CrawlEngine,
     private val adbRepository: AdbRepository,
     private val historyRepository: HistoryRepository
-) : CoroutineWorker(context, params) {
+) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         val taskId = inputData.getString("task_id") ?: return Result.failure()

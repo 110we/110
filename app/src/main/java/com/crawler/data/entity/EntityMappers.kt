@@ -29,7 +29,7 @@ fun ExtractionRuleEntity.toDomain(): ExtractionRule {
         selectorType = com.crawler.domain.model.SelectorType.valueOf(selectorType.name),
         expression = expression,
         attribute = attribute,
-        multiple = MultipleStrategy.valueOf(multiple.name),
+        multiple = com.crawler.domain.model.MultipleStrategy.valueOf(multiple.name),
         joinDelimiter = joinDelimiter,
         postProcessors = postProcessors.map { it.toDomain() }
     )
@@ -47,11 +47,11 @@ fun PostProcessorEntity.toDomain(): PostProcessor {
 
 fun RequestConfigEntity.toDomain(): RequestConfig {
     return RequestConfig(
-        method = HttpMethod.valueOf(method.name),
+        method = com.crawler.domain.model.HttpMethod.valueOf(method.name),
         headers = headers,
         cookies = cookies,
         body = body,
-        bodyType = BodyType.valueOf(bodyType.name),
+        bodyType = com.crawler.domain.model.BodyType.valueOf(bodyType.name),
         timeoutSeconds = timeoutSeconds,
         followRedirects = followRedirects,
         maxRedirects = maxRedirects,
@@ -61,7 +61,7 @@ fun RequestConfigEntity.toDomain(): RequestConfig {
 
 fun ScheduleConfigEntity.toDomain(): ScheduleConfig {
     return ScheduleConfig(
-        type = ScheduleType.valueOf(type.name),
+        type = com.crawler.domain.model.ScheduleType.valueOf(type.name),
         cronExpression = cronExpression,
         timeOfDay = timeOfDay,
         dayOfWeek = dayOfWeek,
@@ -73,7 +73,7 @@ fun ScheduleConfigEntity.toDomain(): ScheduleConfig {
 fun JsRenderingConfigEntity.toDomain(): JsRenderingConfig {
     return JsRenderingConfig(
         enabled = enabled,
-        waitCondition = WaitCondition.valueOf(waitCondition.name),
+        waitCondition = com.crawler.domain.model.WaitCondition.valueOf(waitCondition.name),
         waitSelector = waitSelector,
         waitScript = waitScript,
         timeoutSeconds = timeoutSeconds,
@@ -85,9 +85,9 @@ fun SyncConfigEntity.toDomain(): SyncConfig {
     return SyncConfig(
         enabled = enabled,
         endpoint = endpoint,
-        authType = AuthType.valueOf(authType.name),
+        authType = com.crawler.domain.model.AuthType.valueOf(authType.name),
         credentials = EncryptedCredentials(credentials.username, credentials.password),
-        payloadFormat = PayloadFormat.valueOf(payloadFormat.name),
+        payloadFormat = com.crawler.domain.model.PayloadFormat.valueOf(payloadFormat.name),
         syncOnComplete = syncOnComplete
     )
 }
@@ -108,7 +108,7 @@ fun CrawlResultEntity.toDomain(): CrawlResult {
         taskId = taskId,
         url = url,
         data = data,
-        status = ResultStatus.valueOf(status.name),
+        status = com.crawler.domain.model.ResultStatus.valueOf(status.name),
         errorMessage = errorMessage,
         crawledAt = kotlinx.datetime.Instant.fromEpochMilliseconds(crawledAt),
         syncedAt = syncedAt?.let { kotlinx.datetime.Instant.fromEpochMilliseconds(it) }
@@ -139,7 +139,7 @@ fun CrawlTask.toEntity(): CrawlTaskEntity {
 fun ExtractionRule.toEntity(): ExtractionRuleEntity {
     return ExtractionRuleEntity(
         fieldName = fieldName,
-        selectorType = com.crawler.domain.model.SelectorType.valueOf(selectorType.name),
+        selectorType = SelectorType.valueOf(selectorType.name),
         expression = expression,
         attribute = attribute,
         multiple = MultipleStrategy.valueOf(multiple.name),

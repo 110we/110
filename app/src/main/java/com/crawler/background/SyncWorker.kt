@@ -1,6 +1,7 @@
 package com.crawler.background
 
 import android.content.Context
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.crawler.data.entity.toDomain
@@ -8,16 +9,18 @@ import com.crawler.data.repository.ResultRepository
 import com.crawler.data.repository.TaskRepository
 import com.crawler.domain.model.SyncConfig
 import com.crawler.domain.model.SyncService
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
-import javax.inject.Inject
 
-class SyncWorker @Inject constructor(
-    context: Context,
-    params: WorkerParameters,
+@HiltWorker
+class SyncWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
     private val taskRepository: TaskRepository,
     private val resultRepository: ResultRepository,
     private val syncService: SyncService
-) : CoroutineWorker(context, params) {
+) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         val taskId = inputData.getString("task_id") ?: return Result.failure()

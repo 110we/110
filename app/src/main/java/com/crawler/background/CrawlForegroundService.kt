@@ -274,7 +274,7 @@ class CrawlForegroundService : LifecycleService() {
         else String.format("%02d:%02d", minutes % 60, seconds % 60)
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
+    override fun onBind(intent: Intent): IBinder? = null
 
     override fun onDestroy() {
         crawlJob?.cancel()

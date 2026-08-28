@@ -105,6 +105,16 @@ fun RuleBuilderScreen(
 
     val error by taskViewModel.error.collectAsState()
 
+    fun cancelEdit() {
+        ruleName = ""
+        selector = ""
+        attribute = "text"
+        strategy = MultipleStrategy.FIRST
+        joinSeparator = ", "
+        postProcessors.clear()
+        editingIndex.value = null
+    }
+
     fun saveRule() {
         if (ruleName.isBlank() || selector.isBlank()) return
 
@@ -125,16 +135,6 @@ fun RuleBuilderScreen(
             rules.add(newRule)
         }
         cancelEdit()
-    }
-
-    fun cancelEdit() {
-        ruleName = ""
-        selector = ""
-        attribute = "text"
-        strategy = MultipleStrategy.FIRST
-        joinSeparator = ", "
-        postProcessors.clear()
-        editingIndex.value = null
     }
 
     fun startEdit(index: Int) {
@@ -197,9 +197,9 @@ fun RuleBuilderScreen(
     }
 
     fun copyToClipboard(text: String) {
-        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clipboard = context.getSystemService(android.content.ClipboardManager::class.java)
         val clip = android.content.ClipData.newPlainText("预览结果", text)
-        clipboard.primaryClip = clip
+        clipboard.setPrimaryClip(clip)
     }
 
     Scaffold(

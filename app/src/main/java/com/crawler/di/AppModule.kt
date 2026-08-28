@@ -1,9 +1,6 @@
 package com.crawler.di
 
 import android.content.Context
-import androidx.hilt.work.HiltWorkerFactory
-import androidx.work.Configuration
-import androidx.work.WorkerFactory
 import com.crawler.data.repository.*
 import com.crawler.data.security.CredentialsManager
 import com.crawler.data.service.TaskBackupServiceImpl
@@ -97,11 +94,5 @@ object AppModule {
         historyDao: com.crawler.data.history.HistoryDao
     ): HistoryRepository {
         return com.crawler.data.repository.HistoryRepositoryImpl(historyDao)
-    }
-
-    @Provides
-    @Singleton
-    fun provideWorkerFactory(@dagger.hilt.android.qualifiers.ApplicationContext context: Context): WorkerFactory {
-        return HiltWorkerFactory(context)
     }
 }

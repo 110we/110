@@ -25,9 +25,9 @@ class CredentialsManager @Inject constructor(
                     .build()
             }
             encryptedPrefs = EncryptedSharedPreferences.create(
+                context,
                 "secure_credentials",
                 masterKey!!,
-                context,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
