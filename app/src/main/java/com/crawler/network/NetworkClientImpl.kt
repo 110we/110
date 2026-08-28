@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import okhttp3.*
@@ -118,18 +119,18 @@ class NetworkClientImpl @Inject constructor(
 
 private suspend fun okhttp3.Call.await(): Response {
     val call = this
-    return try {
-        kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
-            enqueue(object : okhttp3.Callback {
-                override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
-                    continuation.cancel(e)
-                }
-
-                override fun onResponse(call: okhttp3.Call, response: Response) {
-                    continuation.resume(response)
-                }
-            })
+    val future = java.util.concurrent.CompletableFuture<Response>()
+    enqueue(object : okhttp3.Callback {
+        override fun onFailure(call: okhttp3.Call, e: java.io.IOException) {
+            future.completeExceptionally(e)
         }
+
+        override fun onResponse(call: okhttp3.Call, response: Response) {
+            future.complete(response)
+        }
+    })
+    return try {
+        future.await()
     } catch (e: kotlinx.coroutines.CancellationException) {
         call.cancel()
         throw e
