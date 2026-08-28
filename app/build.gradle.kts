@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.kapt")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
@@ -126,8 +125,8 @@ dependencies {
     val hiltVersion = "2.48"
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    kapt("com.google.dagger:hilt-compiler:$hiltVersion")
-    kapt("androidx.hilt:hilt-compiler:1.2.0")
+    ksp("com.google.dagger:hilt-compiler:$hiltVersion")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
 
     // Network
     val okhttpVersion = "4.12.0"
@@ -139,7 +138,6 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
     implementation("com.squareup.moshi:moshi-kotlin:$moshiVersion")
     implementation("com.squareup.moshi:moshi-adapters:$moshiVersion")
-    kapt("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
 
     // HTML Parsing
     implementation("org.jsoup:jsoup:1.18.1")
@@ -202,14 +200,7 @@ dependencies {
     androidTestImplementation("androidx.activity:activity-compose:$activityVersion")
     androidTestImplementation("androidx.lifecycle:lifecycle-runtime-testing:$lifecycleVersion")
     androidTestImplementation("com.google.dagger:hilt-android-testing:$hiltVersion")
-    kaptAndroidTest("com.google.dagger:hilt-compiler:$hiltVersion")
-}
-
-kapt {
-    correctErrorTypes = true
-    javacOptions {
-        option("-Xlint:unchecked")
-    }
+    kspAndroidTest("com.google.dagger:hilt-compiler:$hiltVersion")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
