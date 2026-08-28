@@ -3,12 +3,15 @@ package com.crawler.background
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
+import com.crawler.data.history.CrawlHistoryEntity
 import com.crawler.data.repository.ResultRepository
 import com.crawler.data.repository.TaskRepository
 import com.crawler.domain.engine.CrawlEngine
 import com.crawler.domain.model.CrawlProgress
 import com.crawler.domain.model.CrawlStatus
-import kotlinx.coroutines.CoroutineScope
+import com.crawler.domain.repository.AdbRepository
+import com.crawler.domain.repository.HistoryRepository
 import javax.inject.Inject
 
 class CrawlWorker @Inject constructor(
@@ -16,7 +19,9 @@ class CrawlWorker @Inject constructor(
     params: WorkerParameters,
     private val taskRepository: TaskRepository,
     private val resultRepository: ResultRepository,
-    private val crawlEngine: CrawlEngine
+    private val crawlEngine: CrawlEngine,
+    private val adbRepository: AdbRepository,
+    private val historyRepository: HistoryRepository
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -26,15 +31,40 @@ class CrawlWorker @Inject constructor(
         val task = taskRepository.getById(taskId)?.toDomain()
             ?: return Result.failure()
 
+        // 若任务需要读取受保护数据目录，则通过 ADB 前置检查授权状态
+        val adbReady = adbRepository.isShizukuAuthorized || adbRepository.isRootAvailable
+
+        // 记录执行历史（开始）
+        val historyId = historyRepository.recordStart(
+            taskId = task.id,
+            taskName = task.name,
+            triggerType = if (cronExpression.isNotBlank()) "SCHEDULED" else "MANUAL"
+        )
+
         // 静默执行，无通知
         val summary = crawlEngine.execute(task) { progress ->
             // 可选：上报进度到 WorkManager
             setProgressAsync(workDataOf(
                 "pages" to progress.pagesCrawled,
                 "items" to progress.itemsExtracted,
-                "errors" to progress.errors
+                "errors" to progress.errors,
+                "adb_ready" to adbReady
             ))
         }
+
+        // 记录执行历史（完成）
+        val finalStatus = when {
+            summary.status == CrawlStatus.COMPLETED -> CrawlHistoryEntity.STATUS_COMPLETED
+            summary.status == CrawlStatus.FAILED -> CrawlHistoryEntity.STATUS_FAILED
+            else -> CrawlHistoryEntity.STATUS_STOPPED
+        }
+        historyRepository.recordCompletion(
+            historyId = historyId,
+            status = finalStatus,
+            pagesCrawled = summary.totalPages,
+            itemsExtracted = summary.totalItems,
+            errors = summary.totalErrors
+        )
 
         // 保存结果摘要
         // 实际项目中会在 CrawlEngine 内部逐条保存

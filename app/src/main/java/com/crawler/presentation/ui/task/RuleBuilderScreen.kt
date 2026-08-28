@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -31,6 +32,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -122,7 +124,7 @@ fun RuleBuilderScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CrawlerTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
@@ -149,7 +151,7 @@ fun RuleBuilderScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = CrawlerTheme.colorScheme.surfaceContainerHigh
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -157,7 +159,7 @@ fun RuleBuilderScreen(
                                 text = if (editingIndex.value != null) "编辑规则" else "新建规则",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = CrawlerTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary
                             )
                             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
 
@@ -238,7 +240,7 @@ fun RuleBuilderScreen(
                                 Button(
                                     onClick = { saveRule() },
                                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                        containerColor = CrawlerTheme.colorScheme.primary
+                                        containerColor = MaterialTheme.colorScheme.primary
                                     )
                                 ) {
                                     Text(if (editingIndex.value != null) "更新" else "添加")
@@ -253,7 +255,7 @@ fun RuleBuilderScreen(
                             .fillMaxWidth()
                             .weight(1f, true),
                         colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = CrawlerTheme.colorScheme.surfaceContainerHigh
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -265,7 +267,7 @@ fun RuleBuilderScreen(
                                     text = "规则列表 (${rules.size})",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = CrawlerTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
@@ -273,7 +275,7 @@ fun RuleBuilderScreen(
                             if (rules.isEmpty()) {
                                 Text(
                                     text = "暂无规则，点击上方添加",
-                                    color = CrawlerTheme.colorScheme.onSurfaceVariant,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .wrapContentSize(Alignment.Center)
@@ -316,7 +318,7 @@ fun RuleBuilderScreen(
                             .fillMaxWidth()
                             .weight(1f, true),
                         colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = CrawlerTheme.colorScheme.surfaceContainerHigh
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -328,7 +330,7 @@ fun RuleBuilderScreen(
                                     text = "实时预览",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = CrawlerTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                                 if (previewHtml.isNotBlank()) {
                                     Button(onClick = { runPreview() }, enabled = !isPreviewing) {
@@ -358,7 +360,7 @@ fun RuleBuilderScreen(
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = androidx.compose.material3.CardDefaults.cardColors(
-                                        containerColor = CrawlerTheme.colorScheme.surfaceContainer
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                                     )
                                 ) {
                                     Column(modifier = Modifier.padding(16.dp)) {
@@ -387,7 +389,7 @@ fun RuleBuilderScreen(
                             } else if (previewHtml.isBlank()) {
                                 Text(
                                     text = "请输入测试 HTML 并点击预览",
-                                    color = CrawlerTheme.colorScheme.onSurfaceVariant,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .wrapContentSize(Alignment.Center)
@@ -599,7 +601,7 @@ fun RuleListItem(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = CrawlerTheme.colorScheme.surfaceContainer
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -622,18 +624,18 @@ fun RuleListItem(
             Text(
                 text = "${rule.selector} @${rule.attribute}",
                 fontSize = 12.sp,
-                color = CrawlerTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "策略: ${rule.strategy.name}${if (rule.strategy == ExtractionStrategy.JOIN) " (${rule.joinSeparator})" else ""}",
                 fontSize = 12.sp,
-                color = CrawlerTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (rule.postProcessors.isNotEmpty()) {
                 Text(
                     text = "后处理: ${rule.postProcessors.size} 个",
                     fontSize = 12.sp,
-                    color = CrawlerTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Row(

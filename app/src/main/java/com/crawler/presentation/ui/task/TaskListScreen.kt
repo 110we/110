@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.spacer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Chip
@@ -20,6 +21,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -86,7 +88,7 @@ fun TaskListScreen(
                 Text(
                     text = "暂无任务，点击右下角创建",
                     fontSize = 16.sp,
-                    color = CrawlerTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     textAlign = androidx.compose.ui.text.TextAlign.Center
                 )
             }
@@ -134,8 +136,8 @@ fun TaskItemCard(
     modifier: Modifier = Modifier
 ) {
     val statusColor = when (task.scheduleConfig?.enabled == true) {
-        true -> CrawlerTheme.colorScheme.primary
-        false -> CrawlerTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        true -> MaterialTheme.colorScheme.primary
+        false -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
     }
 
     Card(
@@ -143,7 +145,7 @@ fun TaskItemCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(CrawlerTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.surface),
         onClick = onClick,
         elevation = androidx.compose.foundation.layout.CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -169,7 +171,7 @@ fun TaskItemCard(
                     Text(
                         text = "URLs: ${task.baseUrls.size} | 规则: ${task.extractionRules.size}",
                         fontSize = 12.sp,
-                        color = CrawlerTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
                 Chip(
@@ -198,7 +200,7 @@ fun TaskItemCard(
                     onClick = onEdit,
                     modifier = Modifier.weight(1f),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = CrawlerTheme.colorScheme.primaryContainer
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
                     Icon(Icons.Default.Edit, contentDescription = "编辑", modifier = Modifier.size(20.dp))
@@ -210,7 +212,7 @@ fun TaskItemCard(
                     onClick = onRules,
                     modifier = Modifier.weight(1f),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = CrawlerTheme.colorScheme.secondaryContainer
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
                     )
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = "规则", modifier = Modifier.size(20.dp))
@@ -222,7 +224,7 @@ fun TaskItemCard(
                     onClick = onResults,
                     modifier = Modifier.weight(1f),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = CrawlerTheme.colorScheme.tertiaryContainer
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
                     )
                 ) {
                     Icon(Icons.Default.TableChart, contentDescription = "结果", modifier = Modifier.size(20.dp))
@@ -234,7 +236,7 @@ fun TaskItemCard(
                     onClick = onDelete,
                     modifier = Modifier.size(40.dp)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = CrawlerTheme.colorScheme.error)
+                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = MaterialTheme.colorScheme.error)
                 }
             }
         }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -32,6 +33,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +68,8 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     onBack: () -> Unit,
     onPermissionsClick: () -> Unit,
+    onAdbStatusClick: () -> Unit = {},
+    onHistoryClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -77,23 +81,23 @@ fun SettingsScreen(
     var defaultMaxRedirects by remember { mutableStateOf(settings?.defaultMaxRedirects ?: 10) }
     var defaultUserAgent by remember { mutableStateOf(settings?.defaultUserAgent ?: "") }
     var defaultConcurrency by remember { mutableStateOf(settings?.defaultConcurrency ?: 4) }
-    var defaultRateLimit by remember { mutableStateOf(settings?.defaultRateLimitMs ?: 1000) }
+    var defaultRateLimit by remember { mutableStateOf(1000) }
 
-    var autoBackup by remember { mutableStateOf(settings?.autoBackupEnabled ?: false) }
-    var backupInterval by remember { mutableStateOf(settings?.backupIntervalHours ?: 24) }
-    var maxBackupFiles by remember { mutableStateOf(settings?.maxBackupFiles ?: 10) }
+    var autoBackup by remember { mutableStateOf(false) }
+    var backupInterval by remember { mutableStateOf(24) }
+    var maxBackupFiles by remember { mutableStateOf(10) }
 
-    var themeMode by remember { mutableStateOf(settings?.themeMode ?: 0) }
-    var language by remember { mutableStateOf(settings?.language ?: "zh") }
-    var showNotifications by remember { mutableStateOf(settings?.showNotifications ?: true) }
-    var notificationSound by remember { mutableStateOf(settings?.notificationSound ?: true) }
+    var themeMode by remember { mutableStateOf(0) }
+    var language by remember { mutableStateOf("zh") }
+    var showNotifications by remember { mutableStateOf(true) }
+    var notificationSound by remember { mutableStateOf(true) }
 
-    var logLevel by remember { mutableStateOf(settings?.logLevel ?: "INFO") }
-    var maxLogFiles by remember { mutableStateOf(settings?.maxLogFiles ?: 5) }
-    var maxLogSizeMb by remember { mutableStateOf(settings?.maxLogSizeMb ?: 10) }
+    var logLevel by remember { mutableStateOf("INFO") }
+    var maxLogFiles by remember { mutableStateOf(5) }
+    var maxLogSizeMb by remember { mutableStateOf(10) }
 
-    var clearCacheOnExit by remember { mutableStateOf(settings?.clearCacheOnExit ?: false) }
-    var cacheMaxSizeMb by remember { mutableStateOf(settings?.cacheMaxSizeMb ?: 500) }
+    var clearCacheOnExit by remember { mutableStateOf(false) }
+    var cacheMaxSizeMb by remember { mutableStateOf(500) }
 
     val error by settingsViewModel.error.collectAsState()
     val isSaving by settingsViewModel.isSaving.collectAsState()
@@ -112,13 +116,13 @@ fun SettingsScreen(
                         onClick = { saveSettings() },
                         enabled = !isSaving,
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                            containerColor = CrawlerTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         if (isSaving) {
                             androidx.compose.material3.CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
-                                color = CrawlerTheme.colorScheme.onPrimary
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
                             Icon(Icons.Default.Save, contentDescription = "保存")
@@ -128,7 +132,7 @@ fun SettingsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CrawlerTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
@@ -147,12 +151,12 @@ fun SettingsScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = CrawlerTheme.colorScheme.errorContainer
+                            containerColor = MaterialTheme.colorScheme.errorContainer
                         )
                     ) {
                         Text(
                             text = err,
-                            color = CrawlerTheme.colorScheme.onErrorContainer,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.padding(16.dp),
                             fontSize = 14.sp
                         )
@@ -390,6 +394,36 @@ fun SettingsScreen(
                                 Text("权限状态")
                             }
                         }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "ADB 能力（Shizuku / Root）",
+                                fontSize = 14.sp
+                            )
+                            Button(onClick = onAdbStatusClick) {
+                                Text("ADB 状态")
+                            }
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "任务执行历史记录",
+                                fontSize = 14.sp
+                            )
+                            Button(onClick = onHistoryClick) {
+                                Text("执行历史")
+                            }
+                        }
                     }}
 
                     // 危险操作区
@@ -428,19 +462,10 @@ fun SettingsScreen(
             defaultMaxRedirects = defaultMaxRedirects,
             defaultUserAgent = defaultUserAgent,
             defaultConcurrency = defaultConcurrency,
-            defaultRateLimitMs = defaultRateLimit,
-            autoBackupEnabled = autoBackup,
-            backupIntervalHours = backupInterval,
-            maxBackupFiles = maxBackupFiles,
-            themeMode = themeMode,
-            language = language,
-            showNotifications = showNotifications,
-            notificationSound = notificationSound,
-            logLevel = logLevel,
-            maxLogFiles = maxLogFiles,
-            maxLogSizeMb = maxLogSizeMb,
-            clearCacheOnExit = clearCacheOnExit,
-            cacheMaxSizeMb = cacheMaxSizeMb
+            globalRateLimitPerSecond = defaultRateLimit.toDouble(),
+            robotsTxtCompliance = true,
+            jsRenderingDefaultEnabled = false,
+            jsRenderingDefaultTimeout = 30
         )
         settingsViewModel.saveSettings(newSettings)
     }
@@ -457,9 +482,9 @@ fun SettingsSection(
         modifier = Modifier.fillMaxWidth(),
         colors = androidx.compose.material3.CardDefaults.cardColors(
             containerColor = if (isDangerous)
-                CrawlerTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
             else
-                CrawlerTheme.colorScheme.surfaceContainerHigh
+                MaterialTheme.colorScheme.surfaceContainerHigh
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -468,12 +493,12 @@ fun SettingsSection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(icon, contentDescription = "", tint = if (isDangerous) CrawlerTheme.colorScheme.error else CrawlerTheme.colorScheme.primary)
+                Icon(icon, contentDescription = "", tint = if (isDangerous) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
                 Text(
                     text = title,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isDangerous) CrawlerTheme.colorScheme.error else CrawlerTheme.colorScheme.primary
+                    color = if (isDangerous) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 )
             }
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
@@ -515,9 +540,9 @@ fun DangerButton(
             .padding(vertical = 4.dp),
         colors = androidx.compose.material3.CardDefaults.cardColors(
             containerColor = if (isDestructive)
-                CrawlerTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
             else
-                CrawlerTheme.colorScheme.surfaceContainer
+                MaterialTheme.colorScheme.surfaceContainer
         )
     ) {
         Row(
@@ -532,21 +557,21 @@ fun DangerButton(
                     text = text,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = if (isDestructive) CrawlerTheme.colorScheme.error else CrawlerTheme.colorScheme.onSurface
+                    color = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,
                     fontSize = 12.sp,
-                    color = CrawlerTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Button(
                 onClick = onClick,
                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = if (isDestructive) CrawlerTheme.colorScheme.error else CrawlerTheme.colorScheme.primaryContainer
+                    containerColor = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
-                Text("执行", color = if (isDestructive) CrawlerTheme.colorScheme.onError else CrawlerTheme.colorScheme.onPrimaryContainer)
+                Text("执行", color = if (isDestructive) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimaryContainer)
             }
         }
     }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -31,6 +32,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -121,7 +123,7 @@ fun ResultsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CrawlerTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
@@ -140,7 +142,7 @@ fun ResultsScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = androidx.compose.material3.CardDefaults.cardColors(
-                        containerColor = CrawlerTheme.colorScheme.surfaceContainerHigh
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     )
                 ) {
                     Row(
@@ -176,12 +178,12 @@ fun ResultsScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = CrawlerTheme.colorScheme.errorContainer
+                            containerColor = MaterialTheme.colorScheme.errorContainer
                         )
                     ) {
                         Text(
                             text = err,
-                            color = CrawlerTheme.colorScheme.onErrorContainer,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.padding(16.dp),
                             fontSize = 14.sp
                         )
@@ -197,7 +199,7 @@ fun ResultsScreen(
                     ) {
                         androidx.compose.material3.CircularProgressIndicator()
                         androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
-                        Text("加载中...", color = CrawlerTheme.colorScheme.onSurfaceVariant)
+                        Text("加载中...", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else if (results.isEmpty()) {
                     Box(
@@ -207,7 +209,7 @@ fun ResultsScreen(
                     ) {
                         Text(
                             text = "暂无结果",
-                            color = CrawlerTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 16.sp
                         )
                     }
@@ -235,7 +237,7 @@ fun ResultsScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = androidx.compose.material3.CardDefaults.cardColors(
-                                containerColor = CrawlerTheme.colorScheme.surfaceContainerHigh
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                             )
                         ) {
                             Row(
@@ -249,7 +251,7 @@ fun ResultsScreen(
                                         text = col,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = CrawlerTheme.colorScheme.primary,
+                                        color = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier
                                             .weight(1f)
                                             .fillMaxWidth()
@@ -259,7 +261,7 @@ fun ResultsScreen(
                                     text = "操作",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = CrawlerTheme.colorScheme.primary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.width(80.dp)
                                 )
                             }
@@ -333,7 +335,7 @@ fun ResultRow(
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp),
         colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = CrawlerTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -450,7 +452,7 @@ fun ExportDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text("导出结果", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("任务: $taskName", fontSize = 14.sp, color = CrawlerTheme.colorScheme.onSurfaceVariant)
+                Text("任务: $taskName", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
 
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -461,7 +463,7 @@ fun ExportDialog(
                         ) {
                             Column {
                                 Text(format.name, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                                Text(format.description, fontSize = 12.sp, color = CrawlerTheme.colorScheme.onSurfaceVariant)
+                                Text(format.description, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Button(onClick = { onExport(format) }) {
                                 Text("导出")
@@ -522,7 +524,7 @@ fun DetailDialog(
                 Text("状态: ${result.status.name}", fontSize = 14.sp)
                 Text("时间: ${result.timestamp}", fontSize = 14.sp)
                 if (result.errorMessage != null) {
-                    Text("错误: ${result.errorMessage}", fontSize = 14.sp, color = CrawlerTheme.colorScheme.error)
+                    Text("错误: ${result.errorMessage}", fontSize = 14.sp, color = MaterialTheme.colorScheme.error)
                 }
 
                 androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
@@ -538,7 +540,7 @@ fun DetailDialog(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = androidx.compose.material3.CardDefaults.cardColors(
-                                containerColor = CrawlerTheme.colorScheme.surfaceContainer
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
                             )
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {

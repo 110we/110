@@ -114,6 +114,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material3:material3-window-size-class")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.runtime:runtime-livedata")
     implementation("androidx.compose.runtime:runtime-rxjava3")
     implementation("androidx.navigation:navigation-compose:2.7.7")
@@ -160,6 +161,10 @@ dependencies {
     val poiVersion = "5.3.0"
     implementation("org.apache.poi:poi:$poiVersion")
     implementation("org.apache.poi:poi-ooxml:$poiVersion")
+
+    // Shizuku for ADB access
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
 
     // Security Crypto
     val securityVersion = "1.1.0-alpha06"

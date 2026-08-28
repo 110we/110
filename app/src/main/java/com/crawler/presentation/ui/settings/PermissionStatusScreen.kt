@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -34,6 +35,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -92,7 +94,7 @@ fun PermissionStatusScreen(
                         if (isChecking) {
                             androidx.compose.material3.CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
-                                color = CrawlerTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         } else {
                             Icon(Icons.Default.Refresh, contentDescription = "刷新")
@@ -100,7 +102,7 @@ fun PermissionStatusScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CrawlerTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
@@ -121,7 +123,7 @@ fun PermissionStatusScreen(
                         .fillMaxWidth()
                         .padding(16.dp),
                     colors = androidx.compose.material3.CardDefaults.cardColors(
-                        containerColor = CrawlerTheme.colorScheme.primaryContainer
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
                     Row(
@@ -129,18 +131,18 @@ fun PermissionStatusScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Info, contentDescription = "", tint = CrawlerTheme.colorScheme.primary)
+                        Icon(Icons.Default.Info, contentDescription = "", tint = MaterialTheme.colorScheme.primary)
                         Column {
                             Text(
                                 text = "权限说明",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = CrawlerTheme.colorScheme.onPrimaryContainer
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
                                 text = "部分高级功能需要通过 ADB 授予特殊权限。点击操作按钮查看授权命令。",
                                 fontSize = 12.sp,
-                                color = CrawlerTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                             )
                         }
                     }
@@ -169,7 +171,7 @@ fun PermissionStatusScreen(
                         .fillMaxWidth()
                         .padding(16.dp),
                     colors = androidx.compose.material3.CardDefaults.cardColors(
-                        containerColor = CrawlerTheme.colorScheme.surfaceContainerHigh
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -183,7 +185,7 @@ fun PermissionStatusScreen(
                             text = "adb shell pm grant com.crawler android.permission.MANAGE_EXTERNAL_STORAGE\nadb shell pm grant com.crawler android.permission.QUERY_ALL_PACKAGES\nadb shell pm grant com.crawler android.permission.PACKAGE_USAGE_STATS\nadb shell appops set com.crawler MANAGE_EXTERNAL_STORAGE allow",
                             fontSize = 12.sp,
                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                            color = CrawlerTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -286,9 +288,9 @@ fun PermissionCard(
         modifier = Modifier.fillMaxWidth(),
         colors = androidx.compose.material3.CardDefaults.cardColors(
             containerColor = if (isGranted)
-                CrawlerTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
             else
-                CrawlerTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -305,14 +307,14 @@ fun PermissionCard(
                     Icon(
                         permission.icon,
                         contentDescription = "",
-                        tint = if (isGranted) CrawlerTheme.colorScheme.primary else CrawlerTheme.colorScheme.onSurfaceVariant,
+                        tint = if (isGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(28.dp)
                     )
                     if (isGranted) {
                         Icon(
                             Icons.Default.CheckCircle,
                             contentDescription = "已授权",
-                            tint = CrawlerTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(16.dp)
                                 .align(Alignment.BottomEnd)
@@ -321,7 +323,7 @@ fun PermissionCard(
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "未授权",
-                            tint = CrawlerTheme.colorScheme.error,
+                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier
                                 .size(16.dp)
                                 .align(Alignment.BottomEnd)
@@ -349,33 +351,33 @@ fun PermissionCard(
                             onClick = { /* noop */ },
                             colors = androidx.compose.material3.ChipDefaults.chipColors(
                                 containerColor = if (isGranted)
-                                    CrawlerTheme.colorScheme.primaryContainer
+                                    MaterialTheme.colorScheme.primaryContainer
                                 else
-                                    CrawlerTheme.colorScheme.errorContainer
+                                    MaterialTheme.colorScheme.errorContainer
                             )
                         ) {
                             Text(
                                 text = if (isGranted) "已授权" else "未授权",
                                 fontSize = 12.sp,
-                                color = if (isGranted) CrawlerTheme.colorScheme.onPrimaryContainer else CrawlerTheme.colorScheme.onErrorContainer
+                                color = if (isGranted) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
                             )
                         }
                     }
                     Text(
                         text = permission.description,
                         fontSize = 13.sp,
-                        color = CrawlerTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (isAdbOnly) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(Icons.Default.Warning, contentDescription = "", tint = CrawlerTheme.colorScheme.warning, size = 14.sp)
+                            Icon(Icons.Default.Warning, contentDescription = "", tint = MaterialTheme.colorScheme.warning, size = 14.sp)
                             Text(
                                 text = "需要 ADB 授权",
                                 fontSize = 12.sp,
-                                color = CrawlerTheme.colorScheme.warning,
+                                color = MaterialTheme.colorScheme.warning,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -402,7 +404,7 @@ fun PermissionCard(
                     Button(
                         onClick = onRequest,
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                            containerColor = CrawlerTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Icon(Icons.Default.PlayArrow, contentDescription = "请求")
@@ -413,7 +415,7 @@ fun PermissionCard(
                     Button(
                         onClick = onRequest,
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                            containerColor = CrawlerTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Icon(Icons.Default.PlayArrow, contentDescription = "请求")

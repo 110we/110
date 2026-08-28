@@ -11,6 +11,8 @@ import com.crawler.presentation.ui.task.RuleBuilderScreen
 import com.crawler.presentation.ui.task.ResultsScreen
 import com.crawler.presentation.ui.settings.SettingsScreen
 import com.crawler.presentation.ui.settings.PermissionStatusScreen
+import com.crawler.presentation.ui.settings.AdbStatusScreen
+import com.crawler.presentation.ui.settings.HistoryScreen
 
 object NavigationGraph {
     const val ROOT = "tasks"
@@ -19,6 +21,8 @@ object NavigationGraph {
     const val RESULTS = "results"
     const val SETTINGS = "settings"
     const val PERMISSIONS = "permissions"
+    const val ADB_STATUS = "adb_status"
+    const val HISTORY = "history"
 
     fun NavGraphBuilder.buildGraph(
         navController: androidx.navigation.NavController,
@@ -28,7 +32,9 @@ object NavigationGraph {
         onRuleBuilder: (String) -> Unit,
         onResults: (String) -> Unit,
         onSettings: () -> Unit,
-        onPermissions: () -> Unit
+        onPermissions: () -> Unit,
+        onAdbStatus: () -> Unit,
+        onHistory: () -> Unit
     ) {
         composable(ROOT) {
             TaskListScreen(
@@ -75,11 +81,23 @@ object NavigationGraph {
         composable(SETTINGS) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
-                onPermissionsClick = onPermissions
+                onPermissionsClick = onPermissions,
+                onAdbStatusClick = onAdbStatus,
+                onHistoryClick = onHistory
             )
         }
         composable(PERMISSIONS) {
             PermissionStatusScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(ADB_STATUS) {
+            AdbStatusScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(HISTORY) {
+            HistoryScreen(
                 onBack = { navController.popBackStack() }
             )
         }

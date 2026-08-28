@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -31,6 +32,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -189,7 +191,7 @@ fun TaskEditorScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CrawlerTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
@@ -211,12 +213,12 @@ fun TaskEditorScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = CrawlerTheme.colorScheme.errorContainer
+                            containerColor = MaterialTheme.colorScheme.errorContainer
                         )
                     ) {
                         Text(
                             text = err,
-                            color = CrawlerTheme.colorScheme.onErrorContainer,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.padding(16.dp),
                             fontSize = 14.sp
                         )
@@ -548,7 +550,7 @@ fun SectionCard(title: String, content: @Composable () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = CrawlerTheme.colorScheme.surfaceContainerHigh
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -556,7 +558,7 @@ fun SectionCard(title: String, content: @Composable () -> Unit) {
                 text = title,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = CrawlerTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary
             )
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
             content()

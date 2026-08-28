@@ -6,6 +6,7 @@ import com.crawler.data.entity.toDomain
 import com.crawler.data.entity.toEntity
 import com.crawler.data.repository.TaskRepository
 import com.crawler.domain.model.CrawlTask
+import com.crawler.domain.service.TaskBackupService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -14,7 +15,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 
 @HiltViewModel
 class TaskViewModel @Inject constructor(
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val taskBackupService: TaskBackupService
 ) : ViewModel() {
 
     private val _tasks = MutableStateFlow<List<CrawlTask>>(emptyList())
@@ -92,12 +94,9 @@ class TaskViewModel @Inject constructor(
     suspend fun importTasks(jsonContent: String): Result<Int> {
         _error.value = null
         return try {
-            val tasks = kotlinx.serialization.json.Json.decodeFromString(
-                kotlinx.serialization.typeOf<List<com.crawler.data.entity.CrawlTaskEntity>>(), jsonContent
-            )
-            val newIds = taskRepository.importTasks(tasks)
+            val count = taskBackupService.importTasks(jsonContent).getOrThrow()
             loadTasks()
-            Result.success(newIds.size)
+            Result.success(count)
         } catch (e: Exception) {
             _error.value = "导入失败: ${e.message}"
             Result.failure(e)
@@ -107,10 +106,7 @@ class TaskViewModel @Inject constructor(
     suspend fun exportTasks(): Result<String> {
         _error.value = null
         return try {
-            val entities = taskRepository.exportTasks()
-            val json = kotlinx.serialization.json.Json { prettyPrint = true }.encodeToString(
-                kotlinx.serialization.typeOf<List<com.crawler.data.entity.CrawlTaskEntity>>(), entities
-            )
+            val json = taskBackupService.exportTasks().getOrThrow()
             Result.success(json)
         } catch (e: Exception) {
             _error.value = "导出失败: ${e.message}"

@@ -6,7 +6,9 @@ import androidx.work.Configuration
 import androidx.work.WorkerFactory
 import com.crawler.data.repository.*
 import com.crawler.data.security.CredentialsManager
+import com.crawler.data.service.TaskBackupServiceImpl
 import com.crawler.domain.engine.*
+import com.crawler.domain.repository.HistoryRepository
 import com.crawler.domain.scheduler.Scheduler
 import com.crawler.domain.scheduler.SchedulerImpl
 import com.crawler.domain.service.*
@@ -72,6 +74,22 @@ object AppModule {
     @Singleton
     fun provideSyncService(): SyncService {
         return SyncServiceImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideTaskBackupService(
+        taskRepository: com.crawler.data.repository.TaskRepository
+    ): TaskBackupService {
+        return TaskBackupServiceImpl(taskRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideHistoryRepository(
+        historyDao: com.crawler.data.history.HistoryDao
+    ): HistoryRepository {
+        return com.crawler.data.repository.HistoryRepositoryImpl(historyDao)
     }
 
     @Provides

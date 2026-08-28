@@ -13,11 +13,13 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import com.crawler.R
 import com.crawler.data.entity.toDomain
+import com.crawler.data.history.CrawlHistoryEntity
 import com.crawler.data.repository.ResultRepository
 import com.crawler.data.repository.TaskRepository
 import com.crawler.domain.engine.CrawlEngine
 import com.crawler.domain.model.CrawlProgress
 import com.crawler.domain.model.CrawlStatus
+import com.crawler.domain.repository.HistoryRepository
 import com.crawler.presentation.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,8 +44,11 @@ class CrawlForegroundService : LifecycleService() {
     lateinit var resultRepository: ResultRepository
     @Inject
     lateinit var crawlEngine: CrawlEngine
+    @Inject
+    lateinit var historyRepository: HistoryRepository
 
     private var currentTaskId: String? = null
+    private var currentHistoryId: String? = null
     private var crawlJob: Job? = null
     private var notificationManager: NotificationManager? = null
 
@@ -111,6 +116,13 @@ class CrawlForegroundService : LifecycleService() {
                 return@launch
             }
 
+            // 记录执行历史（开始）
+            currentHistoryId = historyRepository.recordStart(
+                taskId = task.id,
+                taskName = task.name,
+                triggerType = "MANUAL"
+            )
+
             val summary = crawlEngine.execute(task) { progress ->
                 updateProgressNotification(progress)
                 // 广播进度给 UI
@@ -119,6 +131,22 @@ class CrawlForegroundService : LifecycleService() {
                     putExtra(EXTRA_PROGRESS, progress)
                 }
                 sendBroadcast(intent)
+            }
+
+            // 记录执行历史（完成）
+            val finalStatus = when {
+                summary.status == CrawlStatus.COMPLETED -> CrawlHistoryEntity.STATUS_COMPLETED
+                summary.status == CrawlStatus.FAILED -> CrawlHistoryEntity.STATUS_FAILED
+                else -> CrawlHistoryEntity.STATUS_STOPPED
+            }
+            currentHistoryId?.let { historyId ->
+                historyRepository.recordCompletion(
+                    historyId = historyId,
+                    status = finalStatus,
+                    pagesCrawled = summary.totalPages,
+                    itemsExtracted = summary.totalItems,
+                    errors = summary.totalErrors
+                )
             }
 
             // 爬取完成
@@ -135,6 +163,18 @@ class CrawlForegroundService : LifecycleService() {
     private fun stopCrawl() {
         crawlJob?.cancel()
         crawlJob = null
+        // 记录停止状态
+        currentHistoryId?.let { historyId ->
+            CoroutineScope(Dispatchers.IO).launch {
+                historyRepository.recordCompletion(
+                    historyId = historyId,
+                    status = CrawlHistoryEntity.STATUS_STOPPED,
+                    pagesCrawled = 0,
+                    itemsExtracted = 0,
+                    errors = 0
+                )
+            }
+        }
         showProgressNotification("已停止", 0, 0, 0, 0, CrawlStatus.STOPPED)
         stopSelf()
     }

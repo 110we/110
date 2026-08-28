@@ -94,6 +94,12 @@ class MainActivity : ComponentActivity() {
                         },
                         onPermissions = {
                             navController.navigate(NavigationGraph.PERMISSIONS)
+                        },
+                        onAdbStatus = {
+                            navController.navigate(NavigationGraph.ADB_STATUS)
+                        },
+                        onHistory = {
+                            navController.navigate(NavigationGraph.HISTORY)
                         }
                     )
                 }
