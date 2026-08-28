@@ -48,6 +48,16 @@
 -dontwarn org.apache.commons.**
 -dontwarn org.openxmlformats.**
 
+# Optional/transitive dependencies referenced from Apache POI and log4j-api
+-dontwarn org.apache.logging.log4j.**
+-dontwarn aQute.bnd.**
+-dontwarn edu.umd.cs.findbugs.**
+-dontwarn org.osgi.framework.**
+-dontwarn java.awt.**
+
+# Tink (androidx.security-crypto) optional annotations
+-dontwarn com.google.errorprone.**
+
 # ICU4J
 -keep class com.ibm.icu.** { *; }
 -dontwarn com.ibm.icu.**
