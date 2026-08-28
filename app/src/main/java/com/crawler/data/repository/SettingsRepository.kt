@@ -3,8 +3,7 @@ package com.crawler.data.repository
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.preferencesKey
-import androidx.datastore.rxjava3.rxpreferences3
-import androidx.datastore.rxjava3.RxPreferenceDataStoreBuilder
+import androidx.datastore.preferences.rxjava3.RxPreferenceDataStoreBuilder
 import com.crawler.data.entity.AppSettingsEntity
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Single
