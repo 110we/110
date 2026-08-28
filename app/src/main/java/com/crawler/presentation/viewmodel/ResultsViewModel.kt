@@ -5,8 +5,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingConfig
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import androidx.paging.LoadParams
-import androidx.paging.LoadResult
 import androidx.paging.cachedIn
 import androidx.paging.PagingData
 import androidx.paging.Pager
@@ -151,29 +149,29 @@ class ResultsPagingSource(
     private val searchQuery: StateFlow<String>
 ) : PagingSource<Int, CrawlResult>() {
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, CrawlResult> {
+    override suspend fun load(params: PagingSource.LoadParams<Int>): PagingSource.LoadResult<Int, CrawlResult> {
         val page = params.key ?: 1
-        val limit = config.pageSize
+        val limit = 50
         val offset = (page - 1) * limit
         val query = searchQuery.value
 
         return try {
             var results = resultRepository.getByTaskId(taskId, limit, offset)
-            
+
             if (query.isNotBlank()) {
                 results = results.filter { result ->
-                    result.data.values.any { it.toString().lowercase().contains(query.lowercase()) }
-                        || result.url.lowercase().contains(query.lowercase())
+                    result.extractedData.lowercase().contains(query.lowercase()) ||
+                        result.url.lowercase().contains(query.lowercase())
                 }
             }
 
-            LoadResult.Page(
+            PagingSource.LoadResult.Page(
                 data = results.map { it.toDomain() },
                 prevKey = if (page > 1) page - 1 else null,
                 nextKey = if (results.size == limit) page + 1 else null
             )
         } catch (e: Exception) {
-            LoadResult.Error(e)
+            PagingSource.LoadResult.Error(e)
         }
     }
 

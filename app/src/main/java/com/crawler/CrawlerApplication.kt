@@ -22,7 +22,7 @@ class CrawlerApplication : Application(), Configuration.Provider {
         super.onCreate()
         instance = this
         if (BuildConfig.DEBUG) {
-            timber.Timber.plant(timber.Timber.DebugTree())
+            timber.log.Timber.plant(timber.log.Timber.DebugTree())
         }
     }
 

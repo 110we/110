@@ -9,6 +9,7 @@ import com.crawler.domain.model.CrawlTask
 import com.crawler.domain.service.TaskBackupService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import dagger.hilt.android.lifecycle.HiltViewModel

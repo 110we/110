@@ -1,8 +1,8 @@
 package com.crawler.presentation.ui.navigation
 
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHost
 import androidx.navigation.NavType
-import androidx.navigation.composable.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.crawler.presentation.ui.task.TaskListScreen
@@ -49,7 +49,7 @@ object NavigationGraph {
             route = "$TASK_EDITOR/{taskId}",
             arguments = listOf(androidx.navigation.navArgument("taskId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val taskId = backStackEntry.getString() ?: ""
+            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
             TaskEditorScreen(
                 taskId = if (taskId.isBlank()) null else taskId,
                 onSave = { _ ->
@@ -62,7 +62,7 @@ object NavigationGraph {
             route = "$RULE_BUILDER/{taskId}",
             arguments = listOf(androidx.navigation.navArgument("taskId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val taskId = backStackEntry.getString() ?: ""
+            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
             RuleBuilderScreen(
                 taskId = taskId,
                 onBack = { navController.popBackStack() }
@@ -72,7 +72,7 @@ object NavigationGraph {
             route = "$RESULTS/{taskId}",
             arguments = listOf(androidx.navigation.navArgument("taskId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val taskId = backStackEntry.getString() ?: ""
+            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
             ResultsScreen(
                 taskId = taskId,
                 onBack = { navController.popBackStack() }

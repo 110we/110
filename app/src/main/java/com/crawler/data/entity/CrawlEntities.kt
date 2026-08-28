@@ -43,7 +43,6 @@ enum class ResultStatus {
     SUCCESS, PARTIAL, ERROR
 }
 
-@Embedded
 data class UrlPatternsEntity(
     val includePatterns: List<String> = emptyList(),
     val excludePatterns: List<String> = emptyList(),
@@ -76,7 +75,6 @@ sealed interface PostProcessorEntity {
     enum class DataType { STRING, INTEGER, LONG, DOUBLE, BOOLEAN, DATE }
 }
 
-@Embedded
 data class RequestConfigEntity(
     val method: HttpMethod = HttpMethod.GET,
     val headers: Map<String, String> = emptyMap(),
@@ -97,7 +95,6 @@ enum class BodyType {
     NONE, FORM, JSON, MULTIPART
 }
 
-@Embedded
 data class ScheduleConfigEntity(
     val type: ScheduleType,
     val cronExpression: String? = null,
@@ -111,7 +108,6 @@ enum class ScheduleType {
     ONCE, DAILY, WEEKLY, MONTHLY, CUSTOM
 }
 
-@Embedded
 data class JsRenderingConfigEntity(
     val enabled: Boolean = false,
     val waitCondition: WaitCondition = WaitCondition.NETWORK_IDLE,
@@ -125,7 +121,6 @@ enum class WaitCondition {
     NETWORK_IDLE, SELECTOR, SCRIPT, TIMEOUT
 }
 
-@Embedded
 data class SyncConfigEntity(
     val enabled: Boolean = false,
     val endpoint: String = "",

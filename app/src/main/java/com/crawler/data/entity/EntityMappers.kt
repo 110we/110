@@ -26,7 +26,7 @@ fun CrawlTaskEntity.toDomain(): CrawlTask {
 fun ExtractionRuleEntity.toDomain(): ExtractionRule {
     return ExtractionRule(
         fieldName = fieldName,
-        selectorType = SelectorType.valueOf(selectorType.name),
+        selectorType = com.crawler.domain.model.SelectorType.valueOf(selectorType.name),
         expression = expression,
         attribute = attribute,
         multiple = MultipleStrategy.valueOf(multiple.name),
@@ -136,7 +136,7 @@ fun CrawlTask.toEntity(): CrawlTaskEntity {
 fun ExtractionRule.toEntity(): ExtractionRuleEntity {
     return ExtractionRuleEntity(
         fieldName = fieldName,
-        selectorType = SelectorType.valueOf(selectorType.name),
+        selectorType = com.crawler.domain.model.SelectorType.valueOf(selectorType.name),
         expression = expression,
         attribute = attribute,
         multiple = MultipleStrategy.valueOf(multiple.name),

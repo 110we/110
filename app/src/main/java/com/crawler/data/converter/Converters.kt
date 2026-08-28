@@ -24,34 +24,34 @@ class Converters {
     private val setStringType: Type = Types.newParameterizedType(Set::class.java, String::class.java)
 
     @TypeConverter
-    fun listStringToJson(list: List<String>?): String = list?.let { moshi.adapter(listStringType).toJson(it) } ?: "[]"
+    fun listStringToJson(list: List<String>?): String = list?.let { moshi.adapter<List<String>>(listStringType).toJson(it) } ?: "[]"
 
     @TypeConverter
-    fun jsonToListString(json: String): List<String> = moshi.adapter(listStringType).fromJson(json) ?: emptyList()
+    fun jsonToListString(json: String): List<String> = moshi.adapter<List<String>>(listStringType).fromJson(json) ?: emptyList()
 
     @TypeConverter
-    fun mapStringStringToJson(map: Map<String, String>?): String = map?.let { moshi.adapter(mapStringStringType).toJson(it) } ?: "{}"
+    fun mapStringStringToJson(map: Map<String, String>?): String = map?.let { moshi.adapter<Map<String, String>>(mapStringStringType).toJson(it) } ?: "{}"
 
     @TypeConverter
-    fun jsonToMapStringString(json: String): Map<String, String> = moshi.adapter(mapStringStringType).fromJson(json) ?: emptyMap()
+    fun jsonToMapStringString(json: String): Map<String, String> = moshi.adapter<Map<String, String>>(mapStringStringType).fromJson(json) ?: emptyMap()
 
     @TypeConverter
-    fun listExtractionRuleToJson(list: List<ExtractionRuleEntity>?): String = list?.let { moshi.adapter(listExtractionRuleType).toJson(it) } ?: "[]"
+    fun listExtractionRuleToJson(list: List<ExtractionRuleEntity>?): String = list?.let { moshi.adapter<List<ExtractionRuleEntity>>(listExtractionRuleType).toJson(it) } ?: "[]"
 
     @TypeConverter
-    fun jsonToListExtractionRule(json: String): List<ExtractionRuleEntity> = moshi.adapter(listExtractionRuleType).fromJson(json) ?: emptyList()
+    fun jsonToListExtractionRule(json: String): List<ExtractionRuleEntity> = moshi.adapter<List<ExtractionRuleEntity>>(listExtractionRuleType).fromJson(json) ?: emptyList()
 
     @TypeConverter
-    fun listPostProcessorToJson(list: List<PostProcessorEntity>?): String = list?.let { moshi.adapter(listPostProcessorType).toJson(it) } ?: "[]"
+    fun listPostProcessorToJson(list: List<PostProcessorEntity>?): String = list?.let { moshi.adapter<List<PostProcessorEntity>>(listPostProcessorType).toJson(it) } ?: "[]"
 
     @TypeConverter
-    fun jsonToListPostProcessor(json: String): List<PostProcessorEntity> = moshi.adapter(listPostProcessorType).fromJson(json) ?: emptyList()
+    fun jsonToListPostProcessor(json: String): List<PostProcessorEntity> = moshi.adapter<List<PostProcessorEntity>>(listPostProcessorType).fromJson(json) ?: emptyList()
 
     @TypeConverter
-    fun setStringToJson(set: Set<String>?): String = set?.let { moshi.adapter(setStringType).toJson(it) } ?: "[]"
+    fun setStringToJson(set: Set<String>?): String = set?.let { moshi.adapter<Set<String>>(setStringType).toJson(it) } ?: "[]"
 
     @TypeConverter
-    fun jsonToSetString(json: String): Set<String> = moshi.adapter(setStringType).fromJson(json)?.toSet() ?: emptySet()
+    fun jsonToSetString(json: String): Set<String> = moshi.adapter<Set<String>>(setStringType).fromJson(json)?.toSet() ?: emptySet()
 
     @TypeConverter
     fun instantToLong(instant: Instant?): Long = instant?.toEpochMilliseconds() ?: 0L

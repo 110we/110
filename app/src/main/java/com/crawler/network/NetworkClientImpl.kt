@@ -3,13 +3,18 @@ package com.crawler.network
 import android.content.Context
 import android.webkit.CookieManager
 import android.webkit.WebView
+import com.crawler.domain.model.BodyType
+import com.crawler.domain.model.HttpMethod
 import com.crawler.domain.model.RequestConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asContextElement
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import okio.ByteString
 import timber.log.Timber
 import java.net.Proxy
@@ -101,7 +106,7 @@ class NetworkClientImpl @Inject constructor(
                         Cookie.Builder()
                             .name(parts[0].trim())
                             .value(parts[1].trim())
-                            .domain(url.host())
+                            .domain(url.host)
                             .path("/")
                             .build()
                     } else null
@@ -144,10 +149,10 @@ class StandardFetchStrategy(
 
         when (config.method) {
             HttpMethod.GET -> builder.get()
-            HttpMethod.POST -> builder.post(createRequestBody(config))
-            HttpMethod.PUT -> builder.put(createRequestBody(config))
-            HttpMethod.PATCH -> builder.patch(createRequestBody(config))
-            HttpMethod.DELETE -> builder.delete(createRequestBody(config))
+            HttpMethod.POST -> builder.post(createRequestBody(config)!!)
+            HttpMethod.PUT -> builder.put(createRequestBody(config)!!)
+            HttpMethod.PATCH -> builder.patch(createRequestBody(config)!!)
+            HttpMethod.DELETE -> builder.delete(createRequestBody(config)!!)
         }
 
         // 仅当配置了自定义 UA 时才覆盖默认 UA
@@ -158,10 +163,10 @@ class StandardFetchStrategy(
     private fun createRequestBody(config: RequestConfig): RequestBody? {
         return when (config.bodyType) {
             BodyType.JSON -> config.body?.let {
-                RequestBody.create(it, MediaType.get("application/json; charset=utf-8"))
+                it.toRequestBody("application/json; charset=utf-8".toMediaType())
             }
             BodyType.FORM -> config.body?.let {
-                RequestBody.create(it, MediaType.get("application/x-www-form-urlencoded; charset=utf-8"))
+                it.toRequestBody("application/x-www-form-urlencoded; charset=utf-8".toMediaType())
             }
             BodyType.MULTIPART -> null // 需要特殊处理
             else -> null
@@ -203,7 +208,6 @@ class JsRenderWebView(context: Context) : WebView(context) {
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         settings.databaseEnabled = true
-        settings.setAppCacheEnabled(true)
         settings.cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
         settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         settings.userAgentString = reqConfig.userAgent ?: "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36"
@@ -287,7 +291,7 @@ class JsRenderWebView(context: Context) : WebView(context) {
         // 同步获取 HTML (在 WebView 线程)
         var html = ""
         evaluateJavascript("document.documentElement.outerHTML") { value ->
-            html = value?.replace("^\"|\"$", "".toRegex())?.replace("\\\"", "\"") ?: ""
+            html = value?.replace(Regex("^\"|\"$"), "")?.replace("\\\"", "\"") ?: ""
         }
         // 简单等待结果
         Thread.sleep(500)

@@ -7,10 +7,12 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import com.crawler.R
 import com.crawler.data.entity.toDomain
 import com.crawler.data.history.CrawlHistoryEntity
@@ -71,7 +73,7 @@ class CrawlForegroundService : LifecycleService() {
         // Android 14+ 需显式调用 startForeground 并指定类型
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val notification = buildInitialNotification()
-            startForeground(NOTIFICATION_ID, notification, Service.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         }
 
         return START_STICKY
@@ -235,7 +237,7 @@ class CrawlForegroundService : LifecycleService() {
         notificationManager?.notify(NOTIFICATION_ID, builder.build())
 
         if (status != CrawlStatus.RUNNING) {
-            androidx.lifecycle.lifecycleScope.launch {
+            lifecycleScope.launch {
                 kotlinx.coroutines.delay(5000)
                 notificationManager?.cancel(NOTIFICATION_ID)
             }

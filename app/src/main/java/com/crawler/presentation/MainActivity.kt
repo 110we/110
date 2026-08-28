@@ -5,18 +5,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.BottomNavigation
-import androidx.compose.material3.BottomNavigationItem
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.navigation.NavController
-import androidx.compose.navigation.NavDestination
-import androidx.compose.navigation.NavGraph
-import androidx.compose.navigation.compose.NavHost
-import androidx.compose.navigation.compose.composable
-import androidx.compose.navigation.compose.rememberNavController
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.NavGraph
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsFlow
+import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.crawler.presentation.ui.navigation.NavigationGraph
 import com.crawler.presentation.ui.theme.CrawlerTheme
 import com.crawler.presentation.viewmodel.CrawlViewModel
@@ -25,14 +25,15 @@ import com.crawler.presentation.viewmodel.SettingsViewModel
 import com.crawler.presentation.viewmodel.TaskViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    private val taskViewModel: TaskViewModel by viewModel()
-    private val crawlViewModel: CrawlViewModel by viewModel()
-    private val settingsViewModel: SettingsViewModel by viewModel()
-    private val permissionViewModel: PermissionViewModel by viewModel()
+    private val taskViewModel: TaskViewModel by viewModels()
+    private val crawlViewModel: CrawlViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
+    private val permissionViewModel: PermissionViewModel by viewModels()
 
     private val progressChannel = Channel<com.crawler.domain.model.CrawlProgress>(kotlinx.coroutines.channels.Channel.UNLIMITED)
 
@@ -53,20 +54,24 @@ class MainActivity : ComponentActivity() {
                 }
 
                 // 注册广播接收器
-                val progressReceiver = android.content.BroadcastReceiver { _, intent ->
-                    val progress = intent.getParcelableExtra<com.crawler.domain.model.CrawlProgress>(
-                        com.crawler.background.CrawlForegroundService.EXTRA_PROGRESS
-                    )
-                    progress?.let { progressChannel.trySend(it) }
+                val progressReceiver = object : android.content.BroadcastReceiver() {
+                    override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+                        val progress = intent?.getParcelableExtra<com.crawler.domain.model.CrawlProgress>(
+                            com.crawler.background.CrawlForegroundService.EXTRA_PROGRESS
+                        )
+                        progress?.let { progressChannel.trySend(it) }
+                    }
                 }
                 androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this)
                     .registerReceiver(progressReceiver, android.content.IntentFilter(com.crawler.background.CrawlForegroundService.ACTION_PROGRESS))
 
                 // 爬取完成广播
-                val completeReceiver = android.content.BroadcastReceiver { _, intent ->
-                    val taskId = intent.getStringExtra(com.crawler.background.CrawlForegroundService.EXTRA_TASK_ID) ?: ""
-                    crawlViewModel.onCrawlCompleted("")
-                    taskViewModel.loadTasks()
+                val completeReceiver = object : android.content.BroadcastReceiver() {
+                    override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) {
+                        val taskId = intent?.getStringExtra(com.crawler.background.CrawlForegroundService.EXTRA_TASK_ID) ?: ""
+                        crawlViewModel.onCrawlCompleted("")
+                        taskViewModel.loadTasks()
+                    }
                 }
                 androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this)
                     .registerReceiver(completeReceiver, android.content.IntentFilter("com.crawler.CRAWL_COMPLETED"))
@@ -110,9 +115,9 @@ class MainActivity : ComponentActivity() {
 
                 BottomNavigation {
                     val items = listOf(
-                        NavigationGraph.ROOT to "任务" to androidx.compose.material.icons.Icons.Filled.ListAlt,
-                        NavigationGraph.RESULTS to "结果" to androidx.compose.material.icons.Icons.Filled.TableChart,
-                        NavigationGraph.SETTINGS to "设置" to androidx.compose.material.icons.Icons.Filled.Settings
+                        Triple(NavigationGraph.ROOT, "任务", androidx.compose.material.icons.Icons.Filled.ListAlt),
+                        Triple(NavigationGraph.RESULTS, "结果", androidx.compose.material.icons.Icons.Filled.TableChart),
+                        Triple(NavigationGraph.SETTINGS, "设置", androidx.compose.material.icons.Icons.Filled.Settings)
                     )
                     items.forEach { (route, label, icon) ->
                         val selected = currentRoute?.startsWith(route) == true
@@ -123,7 +128,7 @@ class MainActivity : ComponentActivity() {
                             onClick = {
                                 if (!selected) {
                                     navController.navigate(route) {
-                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        popUpTo(navController.graph.id) { saveState = true }
                                         launchSingleTop = true
                                     }
                                 }

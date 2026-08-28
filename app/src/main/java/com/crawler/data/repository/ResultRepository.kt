@@ -1,7 +1,5 @@
 package com.crawler.data.repository
 
-import androidx.paging.LoadParams
-import androidx.paging.LoadResult
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
@@ -79,20 +77,20 @@ class ResultPagingSource(
     private val taskId: String
 ) : PagingSource<Int, CrawlResultEntity>() {
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, CrawlResultEntity> {
+    override suspend fun load(params: PagingSource.LoadParams<Int>): PagingSource.LoadResult<Int, CrawlResultEntity> {
         val page = params.key ?: 1
-        val limit = config.pageSize
+        val limit = 50
         val offset = (page - 1) * limit
 
         return try {
             val results = resultDao.getByTaskIdPaged(taskId, limit, offset)
-            LoadResult.Page(
+            PagingSource.LoadResult.Page(
                 data = results,
                 prevKey = if (page > 1) page - 1 else null,
                 nextKey = if (results.size == limit) page + 1 else null
             )
         } catch (e: Exception) {
-            LoadResult.Error(e)
+            PagingSource.LoadResult.Error(e)
         }
     }
 
