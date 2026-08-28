@@ -217,7 +217,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         freeCompilerArgs += listOf(
             "-Xopt-in=kotlin.RequiresOptIn",
             "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-Xopt-in=kotlinx.datetime.ExperimentalDateTimeApi",
             "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi"
         )
     }
