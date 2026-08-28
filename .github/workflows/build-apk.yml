@@ -47,7 +47,9 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          ./gradlew assembleDebug --stacktrace 2>&1 | tee gradle-debug.log
+          ./gradlew :app:kaptGenerateStubsDebugKotlin --stacktrace 2>&1 | tee gradle-debug.log
+          test ${PIPESTATUS[0]} -eq 0 || exit ${PIPESTATUS[0]}
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee -a gradle-debug.log
           test ${PIPESTATUS[0]} -eq 0 || exit ${PIPESTATUS[0]}
 
       - name: Build Release APK
