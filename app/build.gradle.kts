@@ -8,6 +8,8 @@ plugins {
 }
 
 android {
+    compileSdk = 34
+
     defaultConfig {
         applicationId = "com.crawler"
         minSdk = 26
