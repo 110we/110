@@ -16,7 +16,7 @@ import com.crawler.domain.model.CrawlResult
 import com.crawler.domain.model.ExportConfig
 import com.crawler.domain.model.ExportFormat
 import com.crawler.domain.model.ExportResult
-import com.crawler.domain.service.ExportService
+import com.crawler.domain.model.ExportService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

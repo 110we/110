@@ -6,7 +6,7 @@ import androidx.work.WorkerParameters
 import com.crawler.data.repository.ResultRepository
 import com.crawler.data.repository.TaskRepository
 import com.crawler.domain.model.SyncConfig
-import com.crawler.domain.service.SyncService
+import com.crawler.domain.model.SyncService
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 

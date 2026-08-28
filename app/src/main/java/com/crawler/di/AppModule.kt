@@ -9,7 +9,11 @@ import com.crawler.data.security.CredentialsManager
 import com.crawler.data.service.TaskBackupServiceImpl
 import com.crawler.domain.engine.*
 import com.crawler.domain.repository.HistoryRepository
-import com.crawler.domain.scheduler.Scheduler
+import com.crawler.domain.model.CrawlEngine
+import com.crawler.domain.model.ExportService
+import com.crawler.domain.model.ExtractionEngine
+import com.crawler.domain.model.Scheduler
+import com.crawler.domain.model.SyncService
 import com.crawler.domain.scheduler.SchedulerImpl
 import com.crawler.domain.service.*
 import com.crawler.network.NetworkClient

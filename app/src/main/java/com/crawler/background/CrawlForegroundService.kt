@@ -16,7 +16,7 @@ import com.crawler.data.entity.toDomain
 import com.crawler.data.history.CrawlHistoryEntity
 import com.crawler.data.repository.ResultRepository
 import com.crawler.data.repository.TaskRepository
-import com.crawler.domain.engine.CrawlEngine
+import com.crawler.domain.model.CrawlEngine
 import com.crawler.domain.model.CrawlProgress
 import com.crawler.domain.model.CrawlStatus
 import com.crawler.domain.repository.HistoryRepository
