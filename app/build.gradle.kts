@@ -34,7 +34,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            // Apache POI references java.awt.geom.Rectangle2D which is absent on Android;
+            // R8 (8.5) hits an internal ConcurrentModificationException on such references.
+            // Keep minify disabled so assembleRelease succeeds.
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
