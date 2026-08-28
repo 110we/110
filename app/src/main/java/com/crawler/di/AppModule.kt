@@ -1,6 +1,11 @@
 package com.crawler.di
 
 import android.content.Context
+import com.crawler.data.dao.ResultDao
+import com.crawler.data.dao.SettingsDao
+import com.crawler.data.dao.TaskDao
+import com.crawler.data.database.CrawlDatabase
+import com.crawler.data.history.HistoryDao
 import com.crawler.data.repository.*
 import com.crawler.data.security.CredentialsManager
 import com.crawler.data.service.TaskBackupServiceImpl
@@ -25,6 +30,24 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideCrawlDatabase(@dagger.hilt.android.qualifiers.ApplicationContext context: Context): CrawlDatabase {
+        return CrawlDatabase.getInstance(context)
+    }
+
+    @Provides
+    fun provideTaskDao(database: CrawlDatabase): TaskDao = database.taskDao()
+
+    @Provides
+    fun provideResultDao(database: CrawlDatabase): ResultDao = database.resultDao()
+
+    @Provides
+    fun provideHistoryDao(database: CrawlDatabase): HistoryDao = database.historyDao()
+
+    @Provides
+    fun provideSettingsDao(database: CrawlDatabase): SettingsDao = database.settingsDao()
 
     @Provides
     @Singleton
