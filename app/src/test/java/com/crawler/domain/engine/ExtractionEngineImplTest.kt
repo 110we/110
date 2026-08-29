@@ -92,4 +92,42 @@ class ExtractionEngineImplTest {
         val result = engine.extract(html, rules)
         assertThat(result.containsKey("bad")).isFalse()
     }
+
+    @Test
+    fun `regex ALL_ARRAY captures all groups`() {
+        val rules = listOf(
+            ExtractionRule("nums", SelectorType.REGEX, """(\d+)""", multiple = MultipleStrategy.ALL_ARRAY)
+        )
+        val result = engine.extract(html, rules)
+        assertThat(result["nums"] as List<*>).containsExactly("42")
+    }
+
+    @Test
+    fun `trim removes surrounding whitespace then regex replace`() {
+        val rules = listOf(
+            ExtractionRule(
+                "t",
+                SelectorType.CSS,
+                ".title",
+                postProcessors = listOf(PostProcessor.Trim(), PostProcessor.RegexReplace("Alpha", "A"))
+            )
+        )
+        val result = engine.extract(html, rules)
+        assertThat(result["t"]).isEqualTo("A")
+    }
+
+    @Test
+    fun `empty html returns empty extras instead of throwing`() {
+        val rules = listOf(ExtractionRule("x", SelectorType.CSS, "p"))
+        val result = engine.extract("", rules)
+        assertThat(result.containsKey("x")).isFalse()
+    }
+
+    @Test
+    fun `extractJson with regex extracts value`() {
+        val json = """{"user":"alice","age":"30"}"""
+        val rules = listOf(ExtractionRule("age", SelectorType.REGEX, "\"(age)\":\"?(\\d+)\"?"))
+        val result = engine.extractJson(json, rules)
+        assertThat(result["age"]).isNotNull()
+    }
 }
