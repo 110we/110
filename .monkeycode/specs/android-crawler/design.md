@@ -18,6 +18,8 @@ graph TB
         RuleBuilderScreen[Rule Builder Screen]
         ResultsScreen[Results Screen]
         SettingsScreen[Settings Screen]
+        HistoryScreen[History Screen]
+        AdbStatusScreen[ADB Status Screen]
     end
 
     subgraph VM["ViewModel Layer"]
@@ -82,6 +84,8 @@ graph TB
 | `ResultsScreen` | Paginated table with column selector, search, filter chips, export button |
 | `SettingsScreen` | Global preferences grouped: Network, Crawling, Storage, Security, Advanced |
 | `PermissionStatusScreen` | Shows grant state for ADB permissions; actions: open settings, copy adb commands, test fallback |
+| `HistoryScreen` | 爬取历史列表，展示每次任务执行的历史记录 |
+| `AdbStatusScreen` | 展示 Shizuku / Root / Local 三模式状态，引导授权 Shizuku |
 
 ### ViewModel Layer
 
@@ -126,7 +130,7 @@ interface Scheduler {
 }
 ```
 - Wrapper around `WorkManager` with `PeriodicWorkRequest` / `OneTimeWorkRequest`
-- Handles cron expressions via `cron4j` library for custom schedules
+- Handles cron expressions via `com.cronutils` (cron-utils 9.2.1) for custom schedules
 
 #### `ExportService`
 ```kotlin
@@ -146,7 +150,17 @@ interface SyncService {
 }
 ```
 - Retrofit-based HTTP client with interceptors for auth
-- Exponential backoff retry logic with `kotlinx-coroutines-retry`
+- Exponential backoff retry logic
+
+#### `TaskBackupService` (Req 10, Task Import/Export)
+```kotlin
+interface TaskBackupService {
+    suspend fun exportTasks(): Result<String>       // 任务配置导出为 JSON（不含结果）
+    suspend fun importTasks(jsonContent: String): Result<Int>  // 导入，分配新 UUID
+}
+```
+- 基于 kotlinx-serialization 反射模式序列化任务配置
+- 用于任务在设备间迁移与配置备份
 
 ### Data Layer
 
@@ -182,6 +196,15 @@ data class CrawlResultEntity(
 
 @TypeConverters(Converters::class)
 ```
+
+#### 新增：爬取历史
+
+```kotlin
+@Entity(tableName = "crawl_history")
+data class CrawlHistoryEntity(@PrimaryKey val id: String, /* ... */)
+```
+
+- 记录每次爬取的执行历史，供 `HistoryScreen` 展示
 
 #### Security
 - `CredentialsManager`: Encrypt/decrypt sensitive fields using `MasterKey` + `EncryptedSharedPreferences` (API 23+) or `Security` library
@@ -252,6 +275,13 @@ UI 在首次使用相关功能时检测权限，缺失则弹窗提供：
 - “去设置开启”按钮（跳转系统设置页）
 - “复制 ADB 命令”按钮（一键复制上述命令，适合连电脑的用户）
 - “使用标准模式”按钮（走 MediaStore/SAF 等回退方案）
+
+**新增：ADB 能力（Shizuku / Root）**
+- 基于 `dev.rikka.shizuku:api/provider` 集成 Shizuku，实现 shell 级访问受保护数据目录
+- `AdbClient` 支持三种执行模式：`SHIZUKU`（优先）、`ROOT`（Root 环境回退）、`LOCAL`（常规权限）
+- Manifest 声明 `moe.shizuku.manager.permission.API`/`API_V23`、`rikka.shizuku.ShizukuProvider`（authorities = `${applicationId}.shizuku`）
+- `AdbStatusScreen` 展示三模式状态并引导：检测 Shizuku 已安装 → 启动服务 → 授权
+- Shizuku 包名 `moe.shizuku.privileged.api`；`CrawlWorker` 在执行前检查 `isShizukuAuthorized || isRootAvailable`
 
 ## Data Models
 
@@ -467,6 +497,6 @@ sealed class CrawlError(val message: String, val recoverable: Boolean) {
 [^4]: (Square) - [OkHttp Recipes](https://square.github.io/okhttp/recipes/)
 [^5]: (Moshi) - [Moshi GitHub](https://github.com/square/moshi)
 [^6]: (Apache POI) - [Apache POI Spreadsheet](https://poi.apache.org/components/spreadsheet/)
-[^7]: (cron4j) - [cron4j Scheduler](http://www.sauronsoftware.it/projects/cron4j/)
+[^7]: (cron-utils) - [cron-utils GitHub](https://github.com/jmrozanec/cron-utils)
 [^8]: (Android Security) - [Keystore System](https://developer.android.com/training/articles/keystore)
 [^9]: (Kotlin Coroutines) - [Retry Library](https://github.com/aakira/kotlin-coroutines-retry)
