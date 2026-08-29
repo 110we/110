@@ -2,6 +2,12 @@
 
 Android 爬虫应用，支持任务调度、数据采集、结果导出（Excel）等功能。
 
+## 下载 APK
+
+直接下载（由 GitHub Actions 编译、Release 发布）：**app-debug.apk**
+
+[https://github.com/110we/110/releases/download/v1.0.0/app-debug.apk](https://github.com/110we/110/releases/download/v1.0.0/app-debug.apk)
+
 ## 目录结构
 
 ```
