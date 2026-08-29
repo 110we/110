@@ -60,7 +60,7 @@
     - 多值策略: FIRST, ALL_ARRAY, JOIN (ExtractionRule.multiple)
     - 后处理器链: Trim, RegexReplace, TypeConversion (STRING/INTEGER/LONG/DOUBLE/BOOLEAN/DATE)
     - testRule(): 实时预览功能 (Req 2.3)
-    - 注：XPath 选择器按计划使用 xpath 库，需核对 ExtractionEngineImpl 是否已集成
+    - 注：XPath 选择器已接入 `SelectorType.XPATH`，但基于 jsoup 简单 XPath→CSS 转换实现（`ExtractionEngineImpl.xpathToCss`），未使用专用 xpath 库，仅支持常见路径
 
   - [x] 4.2 实现 CrawlEngine
     - 标准抓取策略: OkHttp + Jsoup/Moshi

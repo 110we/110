@@ -117,7 +117,8 @@ interface ExtractionEngine {
     fun testRule(rule: ExtractionRule, sampleHtml: String): ExtractionTestResult
 }
 ```
-- Implements CSS (Jsoup), XPath (via `xpath` library), Regex extraction
+- Implements CSS (Jsoup), XPath (basic jsoup XPath→CSS conversion), Regex extraction
+- 注：XPath 为简化实现 (`ExtractionEngineImpl.xpathToCss`)，仅支持常见路径，未引入专用 xpath 库
 - Post-processors: `TrimProcessor`, `RegexReplaceProcessor`, `TypeConversionProcessor`
 
 #### `Scheduler`
