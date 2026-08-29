@@ -183,10 +183,16 @@ class ExportServiceImpl @Inject constructor(
     }
 
     private fun escapeCsv(value: String): String {
-        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
-            return "\"${value.replace("\"", "\"\"")}\""
+        // 防 CSV 公式注入：以 =、+、-、@ 开头的单元格值加单引号前缀，防止在 Excel/WPS 中被当作公式执行
+        val sanitized = if (value.startsWith("=") || value.startsWith("+") || value.startsWith("-") || value.startsWith("@")) {
+            "'" + value
+        } else {
+            value
         }
-        return value
+        if (sanitized.contains(",") || sanitized.contains("\"") || sanitized.contains("\n")) {
+            return "\"${sanitized.replace("\"", "\"\"")}\""
+        }
+        return sanitized
     }
 
     private fun getFileSize(uri: Uri): Long {

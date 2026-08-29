@@ -13,6 +13,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -233,7 +235,7 @@ class JsRenderWebView(context: Context) : WebView(context) {
         settings.domStorageEnabled = true
         settings.databaseEnabled = true
         settings.cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
-        settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
         settings.userAgentString = reqConfig.userAgent ?: "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36"
 
         // 阻塞资源加载
@@ -282,7 +284,9 @@ class JsRenderWebView(context: Context) : WebView(context) {
             }
             com.crawler.domain.model.WaitCondition.SELECTOR -> {
                 config?.waitSelector?.let { selector ->
-                    evaluateJavascript("document.querySelector('$selector') !== null") { value ->
+                    // 用 JSON 编码防止选择器含单引号/特殊字符时注入任意 JS
+                    val encodedSelector = Json.encodeToString(selector)
+                    evaluateJavascript("document.querySelector($encodedSelector) !== null") { value ->
                         if (value == "true") complete()
                     }
                 } ?: run { complete() }
