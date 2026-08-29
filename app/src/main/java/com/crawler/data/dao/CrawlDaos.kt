@@ -81,10 +81,12 @@ interface ResultDao {
     @Query("SELECT SUM(LENGTH(extractedData)) FROM crawl_results WHERE taskId = :taskId")
     suspend fun getTotalDataSizeByTaskId(taskId: String): Long
 
-    @Query("SELECT SUM(LENGTH(extractedData)) FROM crawl_results")
+@Query("SELECT SUM(LENGTH(extractedData)) FROM crawl_results")
     suspend fun getTotalDataSize(): Long
 
-    @RawQuery(observedEntities = [CrawlResultEntity::class])
+    @Query("SELECT * FROM crawl_results")
+    suspend fun getAll(): List<CrawlResultEntity>
+
     fun getPagedResults(query: androidx.sqlite.db.SupportSQLiteQuery): PagingSource<Int, CrawlResultEntity>
 }
 

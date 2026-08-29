@@ -1,0 +1,36 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+
+processors:
+  active: true
+
+console-reports:
+  active: true
+  exclude:
+    - 'ProjectStatisticsReport'
+
+output-reports:
+  active: true
+
+style:
+  active: true
+  MagicNumber:
+    active: false
+  UnusedPrivateMember:
+    active: false
+
+exceptions:
+  active: true
+
+rulesets:
+  - comments
+  - complexity
+  - coroutines
+  - empty-blocks
+  - exceptions
+  - naming
+  - style
+  - formatting

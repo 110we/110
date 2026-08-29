@@ -143,6 +143,7 @@ interface ExportService {
 ```
 - Streaming writers for large datasets: `CsvWriter`, `JsonStreamWriter`, `Apache POI` for XLSX
 - Uses `MediaStore` API for Android 10+ scoped storage compliance
+- 敏感字段过滤（Req 12.2）：`ExportConfig.excludeSensitiveFields` + `resolveFields()` 自动剔除 password/token/api_key 等字段，`ExportResult.filteredSensitiveCount` 报告剔除数量
 
 #### `SyncService`
 ```kotlin
@@ -158,9 +159,13 @@ interface SyncService {
 interface TaskBackupService {
     suspend fun exportTasks(): Result<String>       // 任务配置导出为 JSON（不含结果）
     suspend fun importTasks(jsonContent: String): Result<Int>  // 导入，分配新 UUID
+    suspend fun exportFullBackup(includeResults: Boolean): Result<FullBackupData>  // 全量加密备份
+    suspend fun restoreFullBackup(data: FullBackupData): Result<Int>  // 恢复
 }
+data class FullBackupData(val version: Int, val createdAt: Long, val encryptedPayload: String, val tasksCount: Int, val resultsCount: Int)
 ```
 - 基于 kotlinx-serialization 反射模式序列化任务配置
+- 全量备份：任务（+可选结果）序列化为 JSON，经 `ArchiveCrypto`（Android Keystore AES-256-GCM）加密
 - 用于任务在设备间迁移与配置备份
 
 ### Data Layer
@@ -210,6 +215,7 @@ data class CrawlHistoryEntity(@PrimaryKey val id: String, /* ... */)
 #### Security
 - `CredentialsManager`: Encrypt/decrypt sensitive fields using `MasterKey` + `EncryptedSharedPreferences` (API 23+) or `Security` library
 - Keys stored in Android Keystore (hardware-backed when available)
+- `ArchiveCrypto`: AES-256-GCM (non-authenticated rollback aware) full-backup encryption, key stored in Android Keystore
 
 ### Network Layer
 
@@ -246,6 +252,10 @@ data class CrawlHistoryEntity(@PrimaryKey val id: String, /* ... */)
 <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
     tools:ignore="ProtectedPermissions" />
+<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+<uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 ```
 
 **PermissionHelper component**:
@@ -460,7 +470,7 @@ sealed class CrawlError(val message: String, val recoverable: Boolean) {
 
 | Module | Coverage Target | Key Scenarios |
 |--------|----------------|---------------|
-| `ExtractionEngine` | 90% | CSS/XPath/Regex extraction, multiple strategies, post-processors, edge cases (empty, malformed HTML) |
+| `ExtractionEngine` | 90% | CSS/XPath/Regex extraction, multiple strategies, post-processors, edge cases (empty, malformed HTML) —— 已编写 `ExtractionEngineImplTest`（2026-08-29）
 | `CrawlEngine` | 80% | Concurrency control, rate limiting, redirect handling, retry logic, JS rendering fallback |
 | `Scheduler` | 85% | Cron parsing, WorkManager enqueue/cancel, constraint handling, timezone |
 | `ExportService` | 85% | CSV RFC 4180 compliance, JSON streaming, XLSX types, large dataset streaming |

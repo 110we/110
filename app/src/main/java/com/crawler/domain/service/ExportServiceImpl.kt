@@ -32,22 +32,25 @@ class ExportServiceImpl @Inject constructor(
     override suspend fun exportCsv(results: List<CrawlResult>, config: ExportConfig): ExportResult {
         val fileName = "crawler_export_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.csv"
         val uri = createExportUri(fileName, "text/csv")
+        val sensitiveRemoved = resultSensitiveFieldCount(results, config)
         uri?.let { writeCsv(it, results, config) }
-        return ExportResult(uri!!, results.size, getFileSize(uri!!))
+        return ExportResult(uri!!, results.size, getFileSize(uri!!), sensitiveRemoved)
     }
 
     override suspend fun exportJson(results: List<CrawlResult>, config: ExportConfig): ExportResult {
         val fileName = "crawler_export_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.json"
         val uri = createExportUri(fileName, "application/json")
+        val sensitiveRemoved = resultSensitiveFieldCount(results, config)
         uri?.let { writeJson(it, results, config) }
-        return ExportResult(uri!!, results.size, getFileSize(uri!!))
+        return ExportResult(uri!!, results.size, getFileSize(uri!!), sensitiveRemoved)
     }
 
     override suspend fun exportExcel(results: List<CrawlResult>, config: ExportConfig): ExportResult {
         val fileName = "crawler_export_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.xlsx"
         val uri = createExportUri(fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        val sensitiveRemoved = resultSensitiveFieldCount(results, config)
         uri?.let { writeExcel(it, results, config) }
-        return ExportResult(uri!!, results.size, getFileSize(uri!!))
+        return ExportResult(uri!!, results.size, getFileSize(uri!!), sensitiveRemoved)
     }
 
     private fun createExportUri(fileName: String, mimeType: String): Uri? {
@@ -92,13 +95,8 @@ class ExportServiceImpl @Inject constructor(
             // 写入 BOM
             writer.write("\uFEFF")
             
-            // 确定列
-            val allFields = getAllFields(results)
-            val selectedFields = if (config.includeFields.isNotEmpty()) {
-                allFields.filter { it in config.includeFields }
-            } else {
-                allFields
-            }
+            // 确定列（含敏感字段过滤）
+            val selectedFields = config.resolveFields(getAllFields(results))
 
             // 表头
             writer.write(selectedFields.joinToString(",") { escapeCsv(it) })
@@ -121,13 +119,10 @@ class ExportServiceImpl @Inject constructor(
         context.contentResolver.openOutputStream(uri)?.use { output ->
             val writer = java.io.OutputStreamWriter(output, "UTF-8")
             writer.write("[\n")
+            val selectedFields = config.resolveFields(getAllFields(results)).toSet()
             for (i in results.indices) {
                 val result = results[i]
-                val filteredData = if (config.includeFields.isNotEmpty()) {
-                    result.data.filterKeys { it in config.includeFields }
-                } else {
-                    result.data
-                }
+                val filteredData = result.data.filterKeys { it in selectedFields }
                 val jsonStr = json.encodeToString(filteredData)
                 writer.write("  $jsonStr${if (i < results.lastIndex) "," else ""}\n")
             }
@@ -145,12 +140,7 @@ class ExportServiceImpl @Inject constructor(
             font.bold = true
             headerStyle.setFont(font)
 
-            val allFields = getAllFields(results)
-            val selectedFields = if (config.includeFields.isNotEmpty()) {
-                allFields.filter { it in config.includeFields }
-            } else {
-                allFields
-            }
+            val selectedFields = config.resolveFields(getAllFields(results))
 
             // 表头
             val headerRow = sheet.createRow(0)
@@ -180,6 +170,13 @@ class ExportServiceImpl @Inject constructor(
 
     private fun getAllFields(results: List<CrawlResult>): List<String> {
         return results.flatMap { it.data.keys }.distinct().sorted()
+    }
+
+    private fun resultSensitiveFieldCount(results: List<CrawlResult>, config: ExportConfig): Int {
+        if (!config.excludeSensitiveFields) return 0
+        val allFields = getAllFields(results)
+        val selected = config.resolveFields(allFields)
+        return allFields.size - selected.size
     }
 
     private fun escapeCsv(value: String): String {

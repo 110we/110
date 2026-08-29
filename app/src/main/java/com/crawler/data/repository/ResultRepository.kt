@@ -55,6 +55,10 @@ class ResultRepository @Inject constructor(
         return resultDao.getTotalDataSize()
     }
 
+    suspend fun getTotal(): List<CrawlResultEntity> {
+        return resultDao.getAll()
+    }
+
     suspend fun deleteByTaskId(taskId: String): Int {
         return resultDao.deleteByTaskId(taskId)
     }

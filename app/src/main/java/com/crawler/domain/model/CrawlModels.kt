@@ -188,7 +188,8 @@ data class ExportConfig(
     val format: ExportFormat,
     val includeFields: Set<String> = emptySet(),
     val filterQuery: String = "",
-    val exportAll: Boolean = true
+    val exportAll: Boolean = true,
+    val excludeSensitiveFields: Boolean = false
 )
 
 enum class ExportFormat { CSV, JSON, EXCEL }
@@ -196,8 +197,24 @@ enum class ExportFormat { CSV, JSON, EXCEL }
 data class ExportResult(
     val uri: android.net.Uri,
     val rowCount: Int,
-    val fileSize: Long
+    val fileSize: Long,
+    val filteredSensitiveCount: Int = 0
 )
+
+private val SENSITIVE_FIELD_PATTERN = Regex(
+    "(?i)(password|passwd|pwd|token|secret|api[_-]?key|access[_-]?key|authorization|cookie|session|credential|private[_-]?key|auth)"
+)
+
+fun ExportConfig.resolveFields(allFields: List<String>): List<String> {
+    var fields = allFields
+    if (this.excludeSensitiveFields) {
+        fields = fields.filterNot { SENSITIVE_FIELD_PATTERN.containsMatchIn(it) }
+    }
+    if (this.includeFields.isNotEmpty()) {
+        fields = fields.filter { it in this.includeFields }
+    }
+    return fields
+}
 
 interface SyncService {
     suspend fun sync(results: List<CrawlResult>, config: SyncConfig): SyncResult

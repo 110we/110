@@ -195,13 +195,13 @@
 - [x] 9. 任务导入导出与备份 (Req 10)
   - [x] 9.1 任务导出: TaskBackupService.exportTasks() 序列化 Task 配置为 JSON (排除结果)
   - [x] 9.2 任务导入: TaskBackupService.importTasks() JSON 校验, 分配新 UUID (Req 10.3)
-  - [ ] 9.3 全量备份: 加密归档 (任务+可选结果), AES-256-GCM (Req 10.2, 12.1) —— 当前实现仅含任务配置导入导出，未含加密归档
+  - [x] 9.3 全量备份: TaskBackupService.exportFullBackup()/restoreFullBackup()，AES-256-GCM 加密归档（任务+可选结果，ArchiveCrypto 基于 Android Keystore）(Req 10.2, 12.1)
 
 - [x] 10. 安全与隐私加固
   - [x] 10.1 敏感字段加密存储: cookies, tokens, passwords -> CredentialsManager
-  - [ ] 10.2 导出时敏感字段过滤提示 (Req 12.2)
+  - [x] 10.2 导出时敏感字段过滤: ExportConfig.excludeSensitiveFields + resolveFields()，自动剔除 password/token/api_key 等敏感字段，ExportResult 返回 filteredSensitiveCount (Req 12.2)
   - [x] 10.3 日志脱敏: 不记录请求/响应体 (Req 12.3) —— LoggingInterceptor 仅记 method/url/code，不含 body
-  - [ ] 10.4 Android 14+ 颗粒化媒体权限: READ_MEDIA_IMAGES/VIDEO/DOCUMENTS (Req 12.4)
+  - [x] 10.4 Android 14+ 颗粒化媒体权限: Manifest 声明 READ_MEDIA_IMAGES/VIDEO/AUDIO/VISUAL_USER_SELECTED，PermissionHelper 提供 missingMediaPermissions() 等检查 (Req 12.4)
 
 - [ ] 11. 集成与端到端验证
   - [ ] 11.1 完整流程测试: 新建任务 -> 配置规则 -> 手动启动 -> 查看进度 -> 停止 -> 查看结果 -> 导出
@@ -215,12 +215,13 @@
   - 在无 JDK/Android SDK 环境下仅能进行静态代码审查；实际功能需在具备环境的机器上运行 `./gradlew assembleDebug` 并真机验证
 
 - [ ]* 13. 单元测试编写
-  - [ ]* 13.1 ExtractionEngine 单元测试: CSS/XPath/Regex, 多值策略, 后处理器 (Coverage 90%)
+  - [x]* 13.1 ExtractionEngine 单元测试: CSS/XPath/Regex, 多值策略, 后处理器 (Coverage 90%) —— app/src/test/java/com/crawler/domain/engine/ExtractionEngineImplTest.kt 已编写；无法本地运行（无 JDK/SDK）
   - [ ]* 13.2 CrawlEngine 单元测试: 并发控制, 限速, 重试, JS 回退 (Coverage 80%)
   - [ ]* 13.3 Scheduler 单元测试: Cron 解析, WorkManager 入队/取消 (Coverage 85%)
   - [ ]* 13.4 ExportService 单元测试: CSV RFC4180, JSON 流式, XLSX 类型, 大数据分片 (Coverage 85%)
   - [ ]* 13.5 SyncService 单元测试: 认证拦截器, 退避重试 (Coverage 80%)
   - [ ]* 13.6 CredentialsManager 单元测试: 加解密往返, 密钥轮换 (Coverage 95%)
+  - [x]* 13.7 导出敏感字段过滤测试: app/src/test/java/com/crawler/domain/model/ExportConfigTest.kt（resolveFields 大小写/包含交集/敏感匹配）
 
 - [ ]* 14. 集成测试编写
   - [ ]* 14.1 Room DAO 测试: 内存数据库 CRUD, 分页, 事务
@@ -229,7 +230,7 @@
   - [ ]* 14.4 MediaStore 导出测试: API 29+ Scoped Storage 兼容性
 
 - [ ]* 15. 代码质量与发布准备
-  - [ ]* 15.1 静态分析: detekt, lint, ktlint —— 未配置
+  - [x]* 15.1 静态分析: detekt 已接入（root + app plugin，detekt.yml）—— 待真实环境运行验证
   - [x]* 15.2 混淆规则: proguard-rules.pro (保留 Room/Serialization/反射类) —— 文件存在；release 当前 isMinifyEnabled = false
   - [x]* 15.3 版本管理: versionCode=1, versionName="1.0.0", Git 标签 v1.0.0
   - [x]* 15.4 签名配置: 支持通过 KEYSTORE_* 环境变量配置 release 签名

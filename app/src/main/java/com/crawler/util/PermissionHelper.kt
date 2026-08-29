@@ -88,4 +88,28 @@ class PermissionHelper(private val context: Context) {
             "REQUEST_INSTALL_PACKAGES" to checkInstallPackages()
         )
     }
+
+    fun checkReadMediaImages(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun checkReadMediaVideo(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun checkReadMediaAudio(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun missingMediaPermissions(): List<String> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return emptyList()
+        return buildList {
+            if (!checkReadMediaImages()) add(android.Manifest.permission.READ_MEDIA_IMAGES)
+            if (!checkReadMediaVideo()) add(android.Manifest.permission.READ_MEDIA_VIDEO)
+            if (!checkReadMediaAudio()) add(android.Manifest.permission.READ_MEDIA_AUDIO)
+        }
+    }
 }
