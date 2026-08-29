@@ -106,9 +106,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideTaskBackupService(
-        taskRepository: com.crawler.data.repository.TaskRepository
+        taskRepository: com.crawler.data.repository.TaskRepository,
+        resultRepository: com.crawler.data.repository.ResultRepository
     ): TaskBackupService {
-        return TaskBackupServiceImpl(taskRepository)
+        return TaskBackupServiceImpl(taskRepository, resultRepository)
     }
 
     @Provides

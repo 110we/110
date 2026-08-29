@@ -8,6 +8,7 @@ import com.crawler.data.security.ArchiveCrypto
 import com.crawler.domain.service.FullBackupData
 import com.crawler.domain.service.TaskBackupService
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.encodeToString
 import javax.inject.Inject
 import javax.inject.Singleton
