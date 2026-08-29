@@ -87,6 +87,7 @@ interface ResultDao {
     @Query("SELECT * FROM crawl_results")
     suspend fun getAll(): List<CrawlResultEntity>
 
+    @RawQuery(observedEntities = [CrawlResultEntity::class])
     fun getPagedResults(query: androidx.sqlite.db.SupportSQLiteQuery): PagingSource<Int, CrawlResultEntity>
 }
 
