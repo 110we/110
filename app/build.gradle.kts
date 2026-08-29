@@ -227,3 +227,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         )
     }
 }
+
+configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+    config.setFrom(rootProject.file("detekt.yml"))
+    autoCorrect = false
+}
